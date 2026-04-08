@@ -31,30 +31,16 @@ They may live in one repository, but they are not the same domain.
 - Git is not the primary operational database.
 - Git is an optional revision backend and developer workspace capability.
 
-## Commercial Safety Policy
+## Agreed Technical Baseline
 
-### Default allowed
-
-- Apache-2.0
-- MIT
-- BSD
-- PostgreSQL License
-
-### Conditional review
-
-- MPL-2.0
-- LGPL
-- dual license
-- open core
-
-### Default excluded from core path
-
-- GPLv3
-- AGPLv3
-- SSPL
-- Elastic License
-- BSL
-- FSL and source-available families
+- Frontend: `React + TypeScript + Vite`
+- Backend target: `Kotlin + Spring Boot + WebFlux + Coroutines + R2DBC`
+- Database: `PostgreSQL`
+- Database migration: `Flyway`
+- Contracts source of truth: `OpenAPI + JSON Schema`
+- Harness runtime: `Python`
+- JDK: `Java 25`
+- Build: `Gradle Kotlin DSL`
 
 ## Architecture Direction
 
@@ -115,19 +101,16 @@ docs/
 
 Current local workspace now follows the recommended monorepo shape.
 
-## Current Local Bootstrap State
+## Current Repository Status
 
-This local workspace currently contains:
-
-- `apps/frontend/`: minimal Vite React baseline
-- `apps/backend/`: minimal FastAPI baseline
-- `tools/harness-runtime/`: artifact-driven run gates and prompt templates
+- `apps/frontend/`: React + TypeScript baseline
+- `apps/backend/`: backend boundary exists, but implementation may still contain temporary bootstrap code before Kotlin migration is complete
+- `tools/harness-runtime/`: Python run gates and prompt templates
 - `packages/contracts/`: contract package boundary scaffold
 - `packages/sdk/`: SDK package boundary scaffold
-- `docs/foundation/product-philosophy.md`
-- `docs/foundation/governance-model.md`
+- `docs/foundation/`: philosophy, governance, and handoff
 
-The baseline preserves direction while keeping product core and harness runtime as separate domains.
+The repository direction is authoritative even when implementation scaffolding lags behind it.
 
 ## Harness Meaning
 
@@ -147,15 +130,13 @@ Unconstrained execution is not allowed.
 
 ## Existing Harness Gate Logic
 
-The local bootstrap harness already assumes these controls:
+The local harness assumes these controls:
 
 - no run without spec snapshot
 - no run without sprint contract
 - no code changes outside touched paths
 - no successful close without evaluator `PASS`
 - no quiet bypass of placeholders in artifacts
-
-These rules should remain when ported to Codex Cloud.
 
 ## Product Vision
 
@@ -189,12 +170,6 @@ Inside the collaboration product, provide a developer-facing application that ma
 This is part of the product experience.
 It is not the same thing as embedding the full harness runtime into the product core.
 
-## Naming Decisions Already Settled
-
-- Brand: `Atrielle`
-- Product: `Aurim`
-- Korean pronunciation for `Aurim`: `아우림`
-
 ## Recommended First Real Scope
 
 Do not begin with the whole collaboration suite.
@@ -206,20 +181,12 @@ Start with one vertical slice:
 - Factory Run
 - Artifact Viewer
 
-This gives a concrete path for both the product and the harness.
+## Immediate Next Steps
 
-## Immediate Next Steps In Codex Cloud
-
-1. Recreate the repository as a monorepo with `apps/`, `tools/`, `packages/`, and `docs/`
-2. Carry forward the two foundation documents unchanged in spirit
-3. Port the harness gates into `tools/harness-runtime/`
-4. Define v0 contracts for:
-   - workspace
-   - git workspace
-   - factory spec
-   - factory run
-   - factory artifact
-5. Build only the first vertical slice before broader product surface area
+1. Define v0 contracts in `packages/contracts/`
+2. Replace temporary backend bootstrap with the agreed Kotlin Spring stack
+3. Keep harness gates under `tools/harness-runtime/`
+4. Build only the first vertical slice before broader product surface area
 
 ## What Not To Do
 
@@ -232,7 +199,7 @@ This gives a concrete path for both the product and the harness.
 
 ## Read First
 
-Before continuing in Codex Cloud, read these files first:
+Before continuing, read these files first:
 
 - [product-philosophy.md](/C:/syszone_project/ui_design/docs/foundation/product-philosophy.md)
 - [governance-model.md](/C:/syszone_project/ui_design/docs/foundation/governance-model.md)

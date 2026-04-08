@@ -1,3 +1,7 @@
+> Note
+> 이 문서는 특정 시점의 비용/아키텍처 리서치 결과를 보존한 참고 자료다.
+> 현재 Aurim의 기준 스택이나 저장소 구조의 authoritative 문서는 아니다.
+> 현재 기준은 `README.md`, `docs/foundation/product-philosophy.md`, `docs/foundation/governance-model.md`, `docs/foundation/cloud-handoff.md`를 따른다.
 # 월 $100 이하 멀티에이전트 AI 개발·운영 사이클을 가장 밸런스 있게 설계하는 방법
 
 ## Executive Summary

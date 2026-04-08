@@ -10,6 +10,20 @@
 3. 교체 가능성 유지
 4. 상업적 이용 안전성
 
+## Current Technical Baseline
+
+현재 합의된 기본 구현 스택은 아래와 같다.
+
+- frontend: `React + TypeScript + Vite`
+- backend target: `Kotlin + Spring Boot + WebFlux + Coroutines + R2DBC`
+- database: `PostgreSQL`
+- migration: `Flyway`
+- contracts source of truth: `OpenAPI + JSON Schema`
+- harness runtime: `Python`
+- JDK: `Java 25`
+
+이 스택은 현재 기준선이며, 비가역 원칙보다 하위 레이어에 속한다.
+
 ## Decision Layers
 
 ### Layer 1. Immutable foundations
@@ -41,6 +55,8 @@
 - Event bus, queue, cache contracts
 - Event schema
 - Search document schema
+- OpenAPI documents
+- JSON Schemas
 
 이 레이어를 바꾸면 migration impact와 compatibility note가 반드시 필요하다.
 
@@ -58,6 +74,7 @@
 - document editing wrapper details
 - observability stack
 - harness runtime implementation
+- backend framework details above the contract layer
 
 이 레이어는 계약 호환성만 유지하면 교체 가능하다.
 
@@ -111,6 +128,7 @@ ADR 최소 항목은 아래와 같다.
 - migration compatibility
 - pluggability rules
 - integration safety
+- contract publication strategy
 
 ### Harness owner decisions
 
@@ -149,6 +167,7 @@ ADR 최소 항목은 아래와 같다.
 - 라이선스 정책에 위배되는가?
 - 웹과 모바일 공통 도메인 모델을 깨는가?
 - Work Item 단일 모델 원칙을 깨는가?
+- OpenAPI 또는 JSON Schema 기준 원본을 우회하는가?
 - 롤백 가능한가?
 
 ## Release Gates

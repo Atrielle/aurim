@@ -22,6 +22,18 @@
 - Git은 플랫폼 DB 대체재가 아니라 선택적 revision backend다.
 - 하네스는 제품 코어가 아니라 별도 factory capability다.
 
+## Current Technical Defaults
+
+- Frontend: `React + TypeScript + Vite`
+- Backend target: `Kotlin + Spring Boot + WebFlux + Coroutines + R2DBC`
+- Database: `PostgreSQL`
+- Migration: `Flyway`
+- Contract source of truth: `OpenAPI + JSON Schema`
+- Harness runtime: `Python`
+- JDK: `Java 25`
+
+기술 스택은 구현 기본값일 뿐이며, 핵심은 제품 소유 규칙과 계약 우선 원칙이다.
+
 ## Product Principles
 
 - 직접 구현은 최소화한다.

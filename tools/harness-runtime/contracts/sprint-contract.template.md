@@ -18,7 +18,9 @@
 
 - [ ] apps/frontend/...
 - [ ] apps/backend/...
+- [ ] packages/contracts/...
 - [ ] tools/harness-runtime/...
+- [ ] docs/...
 
 ## Acceptance Criteria
 
@@ -27,7 +29,7 @@
 
 ## Evidence Required
 
-- [ ] 어떤 화면 / API / artifact로 증명할지
+- [ ] 어떤 화면, API, contract, artifact로 증명할지
 - [ ] 어떤 명령 결과로 증명할지
 
 ## Evaluator Checks
