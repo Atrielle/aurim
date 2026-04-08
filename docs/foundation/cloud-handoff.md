@@ -113,20 +113,21 @@ docs/
   adr/
 ```
 
-Current local workspace still uses top-level `frontend/`, `backend/`, and `harness/` as a bootstrap state.
-When moving into GitHub and Codex Cloud, the recommended shape is the structure above.
+Current local workspace now follows the recommended monorepo shape.
 
 ## Current Local Bootstrap State
 
 This local workspace currently contains:
 
-- `frontend/`: minimal Vite React baseline
-- `backend/`: minimal FastAPI baseline
-- `harness/`: artifact-driven run gates and prompt templates
+- `apps/frontend/`: minimal Vite React baseline
+- `apps/backend/`: minimal FastAPI baseline
+- `tools/harness-runtime/`: artifact-driven run gates and prompt templates
+- `packages/contracts/`: contract package boundary scaffold
+- `packages/sdk/`: SDK package boundary scaffold
 - `docs/foundation/product-philosophy.md`
 - `docs/foundation/governance-model.md`
 
-The current baseline exists to preserve direction, not to represent the final repository layout.
+The baseline preserves direction while keeping product core and harness runtime as separate domains.
 
 ## Harness Meaning
 
