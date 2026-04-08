@@ -11,7 +11,7 @@ router = APIRouter()
 def health() -> HealthResponse:
     return HealthResponse(
         status="ok",
-        service="syszone-backend",
+        service="aurim-backend",
         timestamp=datetime.now(timezone.utc),
     )
 
@@ -24,3 +24,4 @@ def platform_contract() -> PlatformContractResponse:
         work_item_model="Calendar, kanban, WBS, and gantt project from one Work Item model.",
         storage_policy="File metadata is platform-owned; file body storage is provider-driven.",
     )
+

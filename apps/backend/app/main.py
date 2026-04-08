@@ -2,5 +2,6 @@ from fastapi import FastAPI
 
 from app.api import router as api_router
 
-app = FastAPI(title="Syszone Backend", version="0.1.0")
+app = FastAPI(title="Aurim Backend", version="0.1.0")
 app.include_router(api_router.router)
+

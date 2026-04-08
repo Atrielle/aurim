@@ -202,7 +202,7 @@ def gate_close(run_id: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description='Syszone harness runner')
+    parser = argparse.ArgumentParser(description='Aurim harness runner')
     sub = parser.add_subparsers(dest='command', required=True)
 
     create = sub.add_parser('create-run')
@@ -233,3 +233,4 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+

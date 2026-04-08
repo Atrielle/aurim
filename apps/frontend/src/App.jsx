@@ -11,9 +11,9 @@ export default function App() {
     <div className="app">
       <aside className="rail">
         <div className="brand">
-          <div className="brand-mark">SZ</div>
+          <div className="brand-mark">AU</div>
           <div>
-            <strong>Syszone Frontend</strong>
+            <strong>Aurim Frontend</strong>
             <span>Product shell baseline</span>
           </div>
         </div>
@@ -96,3 +96,5 @@ export default function App() {
     </div>
   );
 }
+
+
