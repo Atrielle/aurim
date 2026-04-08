@@ -1,25 +1,29 @@
-# Dual Codebase Workspace
+# Atrielle Aurim Monorepo
 
-이 워크스페이스는 세 부분으로 구성된다.
+이 저장소는 Atrielle 브랜드의 Aurim 제품을 위한 모노레포다.
 
-- `frontend/`: 사용자 제품 UI 코드베이스
-- `backend/`: API 및 도메인 서비스 코드베이스
-- `harness/`: AI planner / generator / evaluator를 강제하는 하네스
+핵심 구조:
 
-핵심 원칙:
+- `apps/`: Aurim product core 애플리케이션 도메인
+  - `apps/frontend/`: 사용자 협업 UI
+  - `apps/backend/`: 플랫폼 API 및 도메인 서비스
+- `tools/`: 제품 외부의 운영 도구 도메인
+  - `tools/harness-runtime/`: spec-driven AI harness runtime
+- `packages/`: 교체 가능한 계약/SDK 패키지
+  - `packages/contracts/`: 플랫폼 및 어댑터 계약 초안 경계
+  - `packages/sdk/`: 클라이언트/내부 SDK 경계
+- `docs/`: foundation 및 ADR 문서
 
-- 프런트와 백은 분리된 코드베이스다
-- 하네스가 스펙, 스프린트 계약, 평가 보고서 없이 다음 단계로 넘어가지 못하게 막는다
-- 수동 프롬프트 입력은 허용하지만, artifact와 gate를 통과하지 못하면 스프린트는 종료되지 않는다
+비가역 원칙:
 
-권장 시작 순서:
+- Aurim 제품 코어와 AI harness는 같은 저장소여도 별도 도메인이다.
+- PostgreSQL만 초기 고정 system of record다.
+- 그 외 엔진(auth/search/storage/git/realtime 등)은 반드시 계약 뒤에서 교체 가능해야 한다.
+- 완성형 OSS 제품을 그대로 제품으로 채택하지 않는다.
 
-1. `harness/specs/product-spec.md`를 채운다
-2. `python harness/scripts/runner.py create-run --run-id sprint-001` 실행
-3. 생성된 run artifact를 기준으로 planner / generator / evaluator 프롬프트를 수동 입력한다
-4. `python harness/scripts/runner.py gate-generator --run-id sprint-001`
-5. `python harness/scripts/runner.py gate-close --run-id sprint-001`
+권장 시작:
 
-`gate-close`가 통과하기 전에는 스프린트 완료로 간주하지 않는다.
-
-aurim
+1. `docs/foundation/product-philosophy.md`
+2. `docs/foundation/governance-model.md`
+3. `docs/foundation/cloud-handoff.md`
+4. `python tools/harness-runtime/scripts/runner.py create-run --run-id sprint-001`
