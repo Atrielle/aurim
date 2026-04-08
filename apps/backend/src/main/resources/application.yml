@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: aurim-backend
+  main:
+    web-application-type: reactive
+  datasource:
+    url: jdbc:postgresql://localhost:5432/aurim
+    username: aurim
+    password: aurim
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/aurim
+    username: aurim
+    password: aurim
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://localhost:5432/aurim
+    user: aurim
+    password: aurim
+    locations: classpath:db/migration
+
+server:
+  port: 8080

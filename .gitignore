@@ -8,3 +8,7 @@ apps/backend/.mypy_cache/
 *.pyo
 *.pyd
 .DS_Store
+
+apps/backend/.gradle/
+apps/backend/build/
+apps/backend/out/

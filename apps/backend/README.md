@@ -22,12 +22,12 @@
 - 코루틴을 사용해 reactive 코드를 직접 다루는 복잡도를 낮춘다.
 - PostgreSQL은 운영 메타데이터의 system of record다.
 - Flyway는 DB 스키마 변경 이력을 버전 관리하기 위한 기본 도구다.
+- Flyway는 JDBC datasource를 사용하고, 앱 런타임은 R2DBC를 사용한다.
 
 ## Current Status
 
-현재 이 디렉터리의 구현은 목표 스택으로 완전히 이행되기 전의 임시 부트스트랩일 수 있다.
-이 경계에서는 Python/FastAPI 방향으로 기능을 확장하지 않는다.
-다음 실제 작업은 Kotlin Spring 기반으로 재정렬하는 것이다.
+이 디렉터리는 현재 Kotlin/Spring Boot 스켈레톤으로 전환되었다.
+`/health`와 `/platform-contract` 엔드포인트가 동작하는 최소 구조를 제공한다.
 
 ## Contract Rules
 
