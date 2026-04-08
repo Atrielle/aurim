@@ -170,6 +170,12 @@ Inside the collaboration product, provide a developer-facing application that ma
 This is part of the product experience.
 It is not the same thing as embedding the full harness runtime into the product core.
 
+## UI Memory
+
+The original local UI before the reset had a strong dashboard and widget-workbench feel.
+That implementation is gone, but the intended feel must remain.
+Read `docs/foundation/ui-direction.md` before doing meaningful frontend design work.
+
 ## Recommended First Real Scope
 
 Do not begin with the whole collaboration suite.
@@ -204,3 +210,5 @@ Before continuing, read these files first:
 - [product-philosophy.md](/C:/syszone_project/ui_design/docs/foundation/product-philosophy.md)
 - [governance-model.md](/C:/syszone_project/ui_design/docs/foundation/governance-model.md)
 - [cloud-handoff.md](/C:/syszone_project/ui_design/docs/foundation/cloud-handoff.md)
+- [ui-direction.md](/C:/syszone_project/ui_design/docs/foundation/ui-direction.md)
+- [resume-context.md](/C:/syszone_project/ui_design/docs/foundation/resume-context.md)
