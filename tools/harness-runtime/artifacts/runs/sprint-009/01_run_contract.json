@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-009",
+  "objective": "Prove the harness clean-run flow against a real backend file by making one minimal, non-behavioral product change inside apps/backend/build.gradle.kts.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/product-philosophy.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md"
+  ],
+  "blocking_rule": "If any required input or contract field is ambiguous, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Author and freeze a sprint contract for a product-scope proof run.",
+    "Capture baseline through gate-generator before touching the backend file.",
+    "Add one clarifying non-behavioral comment to apps/backend/build.gradle.kts."
+  ],
+  "out_of_scope": [
+    "Changing backend runtime behavior or dependency versions.",
+    "Touching any other product file outside apps/backend/build.gradle.kts.",
+    "Editing harness core files as part of this proof run."
+  ],
+  "touched_paths": [
+    "apps/backend/build.gradle.kts",
+    "tools/harness-runtime/artifacts/runs/sprint-009"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "The run completes via create-run, validate-contract, freeze-contract, gate-generator, and gate-close without manual manifest edits.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-009/manifest.json",
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-009"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "A real backend file is changed only after baseline capture and stays within touched paths.",
+      "required_evidence": [
+        "apps/backend/build.gradle.kts",
+        "tools/harness-runtime/artifacts/runs/sprint-009/02_generator_report.md"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "Spec was not reinterpreted.",
+    "Out-of-scope work was not added.",
+    "Changed files stayed within touched paths.",
+    "Every acceptance criterion has concrete evidence."
+  ]
+}

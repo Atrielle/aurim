@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "run_id": "replace-run-id",
+  "objective": "Replace this with one concrete sprint objective.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/product-philosophy.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md"
+  ],
+  "blocking_rule": "If any required input or contract field is ambiguous, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Replace with one allowed delivery item."
+  ],
+  "out_of_scope": [
+    "Replace with one explicit forbidden item."
+  ],
+  "touched_paths": [
+    "packages/contracts/..."
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "Replace with one verifiable acceptance criterion.",
+      "required_evidence": [
+        "Replace with one concrete file, API, or command proof."
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "Spec was not reinterpreted.",
+    "Out-of-scope work was not added.",
+    "Changed files stayed within touched paths.",
+    "Every acceptance criterion has concrete evidence."
+  ]
+}

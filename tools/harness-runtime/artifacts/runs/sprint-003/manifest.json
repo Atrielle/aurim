@@ -1,0 +1,16 @@
+{
+  "run_id": "sprint-003",
+  "status": "passed",
+  "required_sequence": [
+    "00_spec_snapshot.md",
+    "01_run_contract.json",
+    "01_sprint_contract.md",
+    "02_generator_report.md",
+    "03_evaluator_report.md"
+  ],
+  "completed_gates": [
+    "validate-contract",
+    "gate-generator",
+    "gate-close"
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-002",
+  "objective": "Materialize contract-first first-slice specifications and align the Kotlin backend persistence skeleton to those contracts without widening scope.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/product-philosophy.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md",
+    "packages/contracts/openapi/aurim-first-slice.v0.yaml"
+  ],
+  "blocking_rule": "If any required input or contract field is ambiguous, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Create concrete OpenAPI and JSON Schema files under packages/contracts for workspace, git workspace, factory spec, factory run, and factory artifact.",
+    "Replace backend fixture responses with contract-aligned controller, service, repository, and Flyway persistence skeletons.",
+    "Record this sprint in harness artifacts and pass the local harness gates."
+  ],
+  "out_of_scope": [
+    "Frontend implementation for Factory App or Artifact Viewer UI.",
+    "Auth, search, realtime, or storage engine selection beyond current contract placeholders.",
+    "Running planner, generator, or evaluator inside the product request path."
+  ],
+  "touched_paths": [
+    "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/api",
+    "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/model",
+    "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/persistence",
+    "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/service",
+    "apps/backend/src/main/resources/db/migration",
+    "packages/contracts/openapi",
+    "packages/contracts/schemas",
+    "tools/harness-runtime/artifacts/runs/sprint-002"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "packages/contracts contains concrete OpenAPI and JSON Schema files for workspace, git workspace, factory spec, factory run, and factory artifact.",
+      "required_evidence": [
+        "packages/contracts/openapi/aurim-first-slice.v0.yaml",
+        "packages/contracts/schemas/*.json"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "Backend exposes first-slice endpoints through contract-aligned controllers backed by service and R2DBC repository skeletons.",
+      "required_evidence": [
+        "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/api",
+        "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/service",
+        "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/persistence"
+      ]
+    },
+    {
+      "id": "AC-003",
+      "statement": "Flyway includes first-slice persistence tables and apps/backend/gradlew.bat test completes successfully.",
+      "required_evidence": [
+        "apps/backend/src/main/resources/db/migration/V2__first_slice_contracts.sql",
+        "apps/backend/gradlew.bat test"
+      ]
+    },
+    {
+      "id": "AC-004",
+      "statement": "Harness run artifacts for this sprint are complete enough to pass local gate validation.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-002/01_sprint_contract.md",
+        "tools/harness-runtime/artifacts/runs/sprint-002/02_generator_report.md",
+        "tools/harness-runtime/artifacts/runs/sprint-002/03_evaluator_report.md",
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-002"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "Spec was not reinterpreted.",
+    "Out-of-scope work was not added.",
+    "Changed files stayed within touched paths.",
+    "Every acceptance criterion has concrete evidence."
+  ]
+}

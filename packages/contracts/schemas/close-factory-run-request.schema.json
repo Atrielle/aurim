@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrielle.io/aurim/contracts/schemas/close-factory-run-request.schema.json",
+  "title": "CloseFactoryRunRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["evaluation_result", "closed_by"],
+  "properties": {
+    "evaluation_result": {
+      "type": "string",
+      "enum": ["PASS", "FAIL"]
+    },
+    "closed_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    }
+  }
+}

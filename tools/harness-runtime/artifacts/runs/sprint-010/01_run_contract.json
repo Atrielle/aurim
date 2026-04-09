@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-010",
+  "objective": "Prove the harness can close a clean run that touches a real backend product file while the runner authors completion evidence in manifest.json.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/product-philosophy.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md"
+  ],
+  "blocking_rule": "If any required input or contract field is ambiguous, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Close one clean harness run whose touched paths include the current run directory and apps/backend/build.gradle.kts.",
+    "Apply one behavior-preserving clarification comment to apps/backend/build.gradle.kts after gate-generator."
+  ],
+  "out_of_scope": [
+    "Do not change any backend runtime behavior, dependency versions, or compiler targets.",
+    "Do not touch any additional apps/backend files beyond apps/backend/build.gradle.kts."
+  ],
+  "touched_paths": [
+    "tools/harness-runtime/artifacts/runs/sprint-010",
+    "apps/backend/build.gradle.kts"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "The run closes through freeze-contract, gate-generator, and gate-close, and manifest.json records completion state authored by the runner.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-010/manifest.json",
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-010"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "The touched backend product file changes only via a non-functional clarification comment about the Java 25 toolchain and Kotlin JVM 23 bytecode target mismatch.",
+      "required_evidence": [
+        "apps/backend/build.gradle.kts",
+        "git diff -- apps/backend/build.gradle.kts"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "Spec was not reinterpreted.",
+    "Out-of-scope work was not added.",
+    "Changed files stayed within touched paths.",
+    "Every acceptance criterion has concrete evidence."
+  ]
+}

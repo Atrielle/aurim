@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-011",
+  "objective": "Prove the freeze-proof flow against a real backend file by making one minimal, non-behavioral change to apps/backend/src/main/resources/application.yml after baseline capture.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/product-philosophy.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md"
+  ],
+  "blocking_rule": "If any required input or contract field is ambiguous, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Author and freeze a product-scope sprint contract.",
+    "Capture baseline through gate-generator before touching the backend file.",
+    "Add one non-behavioral clarification comment to apps/backend/src/main/resources/application.yml."
+  ],
+  "out_of_scope": [
+    "Changing backend runtime behavior, ports, credentials, or dependency versions.",
+    "Touching any other product file outside apps/backend/src/main/resources/application.yml.",
+    "Editing harness core files as part of this proof run."
+  ],
+  "touched_paths": [
+    "apps/backend/src/main/resources/application.yml",
+    "tools/harness-runtime/artifacts/runs/sprint-011"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "The run completes via create-run, validate-contract, freeze-contract, gate-generator, and gate-close with runner-owned freeze proof and runner-authored manifest completion evidence.",
+      "required_evidence": [
+        "tools/harness-runtime/.runner-state/freeze-proofs/sprint-011.json",
+        "tools/harness-runtime/artifacts/runs/sprint-011/manifest.json",
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-011"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "A real backend file is changed only after baseline capture and stays within touched paths.",
+      "required_evidence": [
+        "apps/backend/src/main/resources/application.yml",
+        "tools/harness-runtime/artifacts/runs/sprint-011/02_generator_report.md"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "Spec was not reinterpreted.",
+    "Out-of-scope work was not added.",
+    "Changed files stayed within touched paths.",
+    "Every acceptance criterion has concrete evidence."
+  ]
+}

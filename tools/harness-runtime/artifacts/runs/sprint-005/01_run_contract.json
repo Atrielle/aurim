@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-005",
+  "objective": "Prove the pure automatic harness path where gate-generator captures the baseline before coding and gate-close validates measured changed files without any manual baseline seeding.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/governance-model.md",
+    "tools/harness-runtime/README.md"
+  ],
+  "blocking_rule": "If any touched path outside the current run directory is already dirty before baseline capture, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Use only the sprint-005 run directory as the touched path.",
+    "Run gate-generator before editing generator and evaluator artifacts.",
+    "Close the run with measured changed-file enforcement active."
+  ],
+  "out_of_scope": [
+    "Any product code changes.",
+    "Any harness changes outside the sprint-005 run directory.",
+    "Any manual baseline seeding."
+  ],
+  "touched_paths": [
+    "tools/harness-runtime/artifacts/runs/sprint-005"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "gate-generator captures the baseline automatically for sprint-005.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-005/manifest.json"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "Only measured post-baseline changes are reported in the generator report.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-005/02_generator_report.md"
+      ]
+    },
+    {
+      "id": "AC-003",
+      "statement": "sprint-005 passes gate-close without manual baseline seeding.",
+      "required_evidence": [
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-005"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "The run uses only its own artifact directory as touched scope.",
+    "Baseline capture happened through gate-generator.",
+    "Generator changed files match measured post-baseline changes.",
+    "The run closes successfully."
+  ]
+}

@@ -12,3 +12,4 @@ apps/backend/.mypy_cache/
 apps/backend/.gradle/
 apps/backend/build/
 apps/backend/out/
+tools/harness-runtime/.runner-state/

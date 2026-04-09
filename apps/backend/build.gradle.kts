@@ -18,6 +18,7 @@ kotlin {
     jvmToolchain(25)
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
+        // Kotlin 2.1.10 cannot emit JVM 25 bytecode here yet, so the backend stays on JVM 23 bytecode under a Java 25 toolchain.
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_23)
     }
 }

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrielle.io/aurim/contracts/schemas/factory-artifact.schema.json",
+  "title": "FactoryArtifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "factory_artifact_id",
+    "factory_run_id",
+    "workspace_id",
+    "artifact_type",
+    "name",
+    "content_ref",
+    "checksum",
+    "created_at",
+    "created_by"
+  ],
+  "properties": {
+    "factory_artifact_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "factory_run_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workspace_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "spec_snapshot",
+        "sprint_contract",
+        "planner_report",
+        "generator_report",
+        "evaluator_report",
+        "diff",
+        "log",
+        "trace"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "content_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "checksum": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    }
+  }
+}

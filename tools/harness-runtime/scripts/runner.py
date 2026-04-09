@@ -1,16 +1,22 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 HARNESS = ROOT / 'tools' / 'harness-runtime'
 RUNS = HARNESS / 'artifacts' / 'runs'
+RUNNER_STATE = HARNESS / '.runner-state'
+FREEZE_PROOFS = RUNNER_STATE / 'freeze-proofs'
+BASELINE_PROOFS = RUNNER_STATE / 'baseline-proofs'
 SPEC = HARNESS / 'specs' / 'product-spec.md'
+RUN_CONTRACT_TEMPLATE = HARNESS / 'contracts' / 'run-contract.template.json'
 SPRINT_TEMPLATE = HARNESS / 'contracts' / 'sprint-contract.template.md'
 GENERATOR_TEMPLATE = HARNESS / 'contracts' / 'generator-report.template.md'
 EVALUATOR_TEMPLATE = HARNESS / 'contracts' / 'evaluator-report.template.md'
@@ -42,6 +48,36 @@ REQUIRED_EVALUATOR_HEADINGS = [
     '## Overall Verdict',
 ]
 
+REQUIRED_RUN_CONTRACT_KEYS = [
+    'version',
+    'run_id',
+    'objective',
+    'authoritative_inputs',
+    'blocking_rule',
+    'in_scope',
+    'out_of_scope',
+    'touched_paths',
+    'acceptance_criteria',
+    'evaluator_checks',
+]
+
+RUN_MANIFEST_TEMPLATE_KEYS = [
+    'run_id',
+    'status',
+    'required_sequence',
+]
+
+PLACEHOLDER_SNIPPETS = [
+    'TBD',
+    '한 문장 요약',
+    '구현 대상',
+    '하지 않을 것',
+    'path/to/file',
+    'criterion 1 -> evidence',
+    'Replace with',
+    'replace-run-id',
+]
+
 
 def fail(message: str) -> None:
     print(f'FAIL: {message}')
@@ -65,6 +101,24 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
+def read_json(path: Path) -> dict:
+    if not path.exists():
+        fail(f'missing file: {path}')
+    try:
+        return json.loads(path.read_text(encoding='utf-8'))
+    except json.JSONDecodeError as exc:
+        fail(f'invalid json in {path}: {exc}')
+    raise AssertionError('unreachable')
+
+
+def write_json(path: Path, payload: dict) -> None:
+    path.write_text(json.dumps(payload, indent=2), encoding='utf-8')
+
+
+def hash_text(text: str) -> str:
+    return hashlib.sha256(text.encode('utf-8')).hexdigest()
+
+
 def require_headings(text: str, headings: list[str], name: str) -> None:
     missing = [heading for heading in headings if heading not in text]
     if missing:
@@ -72,8 +126,7 @@ def require_headings(text: str, headings: list[str], name: str) -> None:
 
 
 def require_no_placeholders(text: str, name: str) -> None:
-    placeholders = ['TBD', '한 문장 요약', '구현 대상', '하지 않을 것', 'path/to/file', 'criterion 1 -> evidence']
-    found = [item for item in placeholders if item in text]
+    found = [item for item in PLACEHOLDER_SNIPPETS if item in text]
     if found:
         fail(f'{name} still contains placeholders: {", ".join(found)}')
 
@@ -98,11 +151,227 @@ def validate_paths(paths: list[str]) -> None:
         normalized = item.replace('\\', '/')
         if not any(normalized.startswith(root) for root in allowed_roots):
             fail(f'touched path outside allowed roots: {item}')
+        if normalized == 'tools/harness-runtime/.runner-state' or normalized.startswith('tools/harness-runtime/.runner-state/'):
+            fail(f'touched path cannot include runner-owned state: {item}')
         resolved = (ROOT / normalized).resolve()
         try:
             resolved.relative_to(ROOT)
         except ValueError:
             fail(f'touched path escapes workspace: {item}')
+
+
+def is_within_touched_paths(path: str, touched_paths: list[str]) -> bool:
+    normalized = path.replace('\\', '/')
+    return any(
+        normalized == touched.rstrip('/') or normalized.startswith(touched.rstrip('/') + '/')
+        for touched in (item.replace('\\', '/') for item in touched_paths)
+    )
+
+
+def iter_touched_files(touched_paths: list[str]) -> list[str]:
+    files: set[str] = set()
+    for item in touched_paths:
+        resolved = ROOT / item
+        if resolved.is_file():
+            files.add(resolved.relative_to(ROOT).as_posix())
+        elif resolved.is_dir():
+            for child in resolved.rglob('*'):
+                if child.is_file():
+                    files.add(child.relative_to(ROOT).as_posix())
+    return sorted(files)
+
+
+def hash_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def build_snapshot(touched_paths: list[str]) -> dict[str, str]:
+    snapshot: dict[str, str] = {}
+    for relative_path in iter_touched_files(touched_paths):
+        snapshot[relative_path] = hash_file(ROOT / relative_path)
+    return snapshot
+
+
+def build_run_artifact_snapshot(run_id: str) -> dict[str, str]:
+    snapshot = build_snapshot([run_relative_dir(run_id)])
+    snapshot.pop(run_manifest_path(run_id), None)
+    return snapshot
+
+
+def manifest_template_hash(manifest: dict) -> str:
+    payload = {key: manifest[key] for key in RUN_MANIFEST_TEMPLATE_KEYS}
+    return hash_text(json.dumps(payload, sort_keys=True, separators=(',', ':')))
+
+
+def build_template_snapshot(run_id: str, manifest: dict, touched_paths: list[str]) -> dict[str, str]:
+    snapshot: dict[str, str] = {}
+    for relative_path in iter_touched_files(touched_paths):
+        if relative_path == run_manifest_path(run_id):
+            snapshot[relative_path] = manifest_template_hash(manifest)
+        else:
+            snapshot[relative_path] = hash_file(ROOT / relative_path)
+    return snapshot
+
+
+def current_template_hash(relative_path: str, run_id: str) -> str:
+    if relative_path == run_manifest_path(run_id):
+        manifest = read_manifest(run_id)
+        return manifest_template_hash(manifest)
+    return hash_file(ROOT / relative_path)
+
+
+def git_status_files() -> list[str]:
+    result = subprocess.run(
+        ['git', '-C', str(ROOT), 'status', '--short', '--untracked-files=all'],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    files: list[str] = []
+    for line in result.stdout.splitlines():
+        raw_path = line[3:].strip()
+        if not raw_path:
+            continue
+        if ' -> ' in raw_path:
+            raw_path = raw_path.split(' -> ', 1)[1]
+        files.append(raw_path.replace('\\', '/'))
+    return sorted(set(files))
+
+
+def run_relative_dir(run_id: str) -> str:
+    return f'tools/harness-runtime/artifacts/runs/{run_id}'
+
+
+def run_manifest_path(run_id: str) -> str:
+    return f'{run_relative_dir(run_id)}/manifest.json'
+
+
+def freeze_proof_path(run_id: str) -> Path:
+    return FREEZE_PROOFS / f'{run_id}.json'
+
+
+def freeze_proof_relative_path(run_id: str) -> str:
+    return freeze_proof_path(run_id).relative_to(ROOT).as_posix()
+
+
+def baseline_proof_path(run_id: str) -> Path:
+    return BASELINE_PROOFS / f'{run_id}.json'
+
+
+def generator_ignored_paths(run_id: str) -> set[str]:
+    run_dir_relative = run_relative_dir(run_id)
+    return {
+        f'{run_dir_relative}/03_evaluator_report.md',
+        f'{run_dir_relative}/manifest.json',
+    }
+
+
+def require_non_empty_string(value: object, name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        fail(f'{name} must be a non-empty string')
+    if any(snippet in value for snippet in PLACEHOLDER_SNIPPETS):
+        fail(f'{name} still contains placeholders')
+    return value.strip()
+
+
+def require_string_list(value: object, name: str) -> list[str]:
+    if not isinstance(value, list) or not value:
+        fail(f'{name} must be a non-empty list')
+    result: list[str] = []
+    for index, item in enumerate(value):
+        result.append(require_non_empty_string(item, f'{name}[{index}]'))
+    return result
+
+
+def read_run_contract(run_id: str) -> dict:
+    target = run_dir(run_id)
+    path = target / '01_run_contract.json'
+    contract = read_json(path)
+
+    missing_keys = [key for key in REQUIRED_RUN_CONTRACT_KEYS if key not in contract]
+    if missing_keys:
+        fail(f'run contract missing keys: {", ".join(missing_keys)}')
+
+    if contract['run_id'] != run_id:
+        fail(f'run contract run_id mismatch: expected {run_id}, got {contract["run_id"]}')
+
+    require_non_empty_string(contract['version'], 'run contract version')
+    require_non_empty_string(contract['objective'], 'run contract objective')
+    require_non_empty_string(contract['blocking_rule'], 'run contract blocking_rule')
+
+    authoritative_inputs = require_string_list(contract['authoritative_inputs'], 'run contract authoritative_inputs')
+    for item in authoritative_inputs:
+        resolved = (ROOT / item).resolve()
+        if not resolved.exists():
+            fail(f'authoritative input does not exist: {item}')
+        try:
+            resolved.relative_to(ROOT)
+        except ValueError:
+            fail(f'authoritative input escapes workspace: {item}')
+
+    require_string_list(contract['in_scope'], 'run contract in_scope')
+    require_string_list(contract['out_of_scope'], 'run contract out_of_scope')
+
+    touched_paths = require_string_list(contract['touched_paths'], 'run contract touched_paths')
+    validate_paths(touched_paths)
+
+    acceptance_criteria = contract['acceptance_criteria']
+    if not isinstance(acceptance_criteria, list) or not acceptance_criteria:
+        fail('run contract acceptance_criteria must be a non-empty list')
+
+    criterion_ids: list[str] = []
+    for index, item in enumerate(acceptance_criteria):
+        if not isinstance(item, dict):
+            fail(f'acceptance_criteria[{index}] must be an object')
+        criterion_id = require_non_empty_string(item.get('id'), f'acceptance_criteria[{index}].id')
+        if criterion_id in criterion_ids:
+            fail(f'duplicate acceptance criterion id: {criterion_id}')
+        criterion_ids.append(criterion_id)
+        require_non_empty_string(item.get('statement'), f'acceptance_criteria[{index}].statement')
+        require_string_list(item.get('required_evidence'), f'acceptance_criteria[{index}].required_evidence')
+
+    require_string_list(contract['evaluator_checks'], 'run contract evaluator_checks')
+    contract['_criterion_ids'] = criterion_ids
+    contract['_touched_paths'] = touched_paths
+    return contract
+
+
+def read_manifest(run_id: str) -> dict:
+    return read_json(run_dir(run_id) / 'manifest.json')
+
+
+def write_manifest(run_id: str, manifest: dict) -> None:
+    write_json(run_dir(run_id) / 'manifest.json', manifest)
+
+
+def write_freeze_proof(run_id: str, payload: dict) -> None:
+    FREEZE_PROOFS.mkdir(parents=True, exist_ok=True)
+    write_json(freeze_proof_path(run_id), payload)
+
+
+def read_freeze_proof(run_id: str) -> dict:
+    return read_json(freeze_proof_path(run_id))
+
+
+def write_baseline_proof(run_id: str, payload: dict) -> None:
+    BASELINE_PROOFS.mkdir(parents=True, exist_ok=True)
+    write_json(baseline_proof_path(run_id), payload)
+
+
+def read_baseline_proof(run_id: str) -> dict:
+    return read_json(baseline_proof_path(run_id))
+
+
+def record_gate_completion(run_id: str, gate_name: str, status: str) -> None:
+    manifest = read_manifest(run_id)
+    completed_gates = manifest.get('completed_gates')
+    if not isinstance(completed_gates, list):
+        completed_gates = []
+    if gate_name not in completed_gates:
+        completed_gates.append(gate_name)
+    manifest['completed_gates'] = completed_gates
+    manifest['status'] = status
+    write_manifest(run_id, manifest)
 
 
 def extract_changed_files(generator_text: str) -> list[str]:
@@ -115,12 +384,120 @@ def extract_changed_files(generator_text: str) -> list[str]:
     return items
 
 
+def extract_acceptance_mapping_ids(generator_text: str) -> list[str]:
+    match = re.search(r'## Acceptance Mapping\n(.*?)(?:\n## |\Z)', generator_text, flags=re.S)
+    if not match:
+        fail('could not find Acceptance Mapping section')
+    items = re.findall(r'- \[(?:x|X)\] ([A-Z]{2}-\d{3}) -> .+', match.group(1))
+    if not items:
+        fail('Acceptance Mapping must contain checked criterion IDs')
+    return items
+
+
 def ensure_changed_files_within_scope(changed_files: list[str], touched_paths: list[str]) -> None:
-    touched = [path.replace('\\', '/') for path in touched_paths]
     for file in changed_files:
-        normalized = file.replace('\\', '/')
-        if not any(normalized == path.rstrip('/') or normalized.startswith(path.rstrip('/') + '/') for path in touched):
+        if not is_within_touched_paths(file, touched_paths):
             fail(f'changed file outside touched paths: {file}')
+
+
+def validate_freeze_proof(run_id: str, *, require_prebaseline_state: bool) -> dict:
+    proof = read_freeze_proof(run_id)
+    if proof.get('run_id') != run_id:
+        fail('freeze proof run_id mismatch')
+    if proof.get('captured_via') != 'freeze-contract':
+        fail('freeze proof captured_via mismatch')
+    frozen_snapshot = proof.get('run_artifact_snapshot')
+    if not isinstance(frozen_snapshot, dict):
+        fail('freeze proof run_artifact_snapshot is invalid')
+    manifest_hash = proof.get('manifest_hash')
+    if not isinstance(manifest_hash, str) or not manifest_hash:
+        fail('freeze proof manifest_hash is invalid')
+    contract_hashes = proof.get('contract_hashes')
+    if not isinstance(contract_hashes, dict):
+        fail('freeze proof contract_hashes is invalid')
+
+    expected_contracts = {
+        f'{run_relative_dir(run_id)}/01_run_contract.json',
+        f'{run_relative_dir(run_id)}/01_sprint_contract.md',
+    }
+    if set(contract_hashes) != expected_contracts:
+        fail('freeze proof contract_hashes do not match authored contract files')
+
+    for relative_path, frozen_hash in contract_hashes.items():
+        if hash_file(ROOT / relative_path) != frozen_hash:
+            fail(f'freeze proof no longer matches authored contract file: {relative_path}')
+
+    if require_prebaseline_state:
+        if build_run_artifact_snapshot(run_id) != frozen_snapshot:
+            fail('run artifacts changed after freeze-contract and before baseline capture')
+
+        if hash_file(run_dir(run_id) / 'manifest.json') != manifest_hash:
+            fail('manifest was edited after freeze-contract')
+
+    return proof
+
+
+def validate_baseline_proof(run_id: str) -> dict:
+    proof = read_baseline_proof(run_id)
+    if proof.get('run_id') != run_id:
+        fail('baseline proof run_id mismatch')
+    if proof.get('captured_via') != 'gate-generator':
+        fail('baseline proof captured_via mismatch')
+    baseline_snapshot = proof.get('baseline_snapshot')
+    if not isinstance(baseline_snapshot, dict):
+        fail('baseline proof baseline_snapshot is invalid')
+    return proof
+
+
+def capture_baseline(run_id: str, touched_paths: list[str], freeze_proof: dict) -> None:
+    manifest = read_manifest(run_id)
+    if baseline_proof_path(run_id).exists():
+        return
+    frozen_snapshot = freeze_proof['run_artifact_snapshot']
+    frozen_manifest_hash = freeze_proof['manifest_hash']
+
+    dirty_files = {
+        path for path in git_status_files() if is_within_touched_paths(path, touched_paths)
+    }
+    exemptable_files: set[str] = set()
+    for path in dirty_files:
+        if path == run_manifest_path(run_id):
+            if hash_file(run_dir(run_id) / 'manifest.json') == frozen_manifest_hash:
+                exemptable_files.add(path)
+            continue
+        if path in frozen_snapshot and hash_file(ROOT / path) == frozen_snapshot[path]:
+            exemptable_files.add(path)
+    dirty_files -= exemptable_files
+    if dirty_files:
+        fail(f'touched paths are already dirty before baseline capture: {", ".join(sorted(dirty_files))}')
+
+    baseline_snapshot = build_snapshot(touched_paths)
+    write_baseline_proof(
+        run_id,
+        {
+            'run_id': run_id,
+            'captured_via': 'gate-generator',
+            'baseline_snapshot': baseline_snapshot,
+            'baseline_git_dirty_files': sorted(exemptable_files),
+        },
+    )
+    manifest['baseline_snapshot'] = baseline_snapshot
+    manifest['baseline_git_dirty_files'] = sorted(exemptable_files)
+    manifest['baseline_captured_via'] = 'gate-generator'
+    write_manifest(run_id, manifest)
+
+
+def actual_changed_files(run_id: str, touched_paths: list[str]) -> list[str]:
+    baseline_snapshot = validate_baseline_proof(run_id)['baseline_snapshot']
+
+    current_snapshot = build_snapshot(touched_paths)
+    changed = {
+        path
+        for path in sorted(set(baseline_snapshot) | set(current_snapshot))
+        if baseline_snapshot.get(path) != current_snapshot.get(path)
+    }
+    changed -= generator_ignored_paths(run_id)
+    return sorted(changed)
 
 
 def create_run(run_id: str) -> None:
@@ -129,9 +506,15 @@ def create_run(run_id: str) -> None:
     target = RUNS / run_id
     if target.exists():
         fail(f'run already exists: {target}')
+    if freeze_proof_path(run_id).exists():
+        fail(f'runner-owned freeze proof already exists: {freeze_proof_path(run_id)}')
+    if baseline_proof_path(run_id).exists():
+        fail(f'runner-owned baseline proof already exists: {baseline_proof_path(run_id)}')
 
     target.mkdir(parents=True)
     shutil.copyfile(SPEC, target / '00_spec_snapshot.md')
+    contract_text = read_text(RUN_CONTRACT_TEMPLATE).replace('replace-run-id', run_id)
+    (target / '01_run_contract.json').write_text(contract_text, encoding='utf-8')
     shutil.copyfile(SPRINT_TEMPLATE, target / '01_sprint_contract.md')
     shutil.copyfile(GENERATOR_TEMPLATE, target / '02_generator_report.md')
     shutil.copyfile(EVALUATOR_TEMPLATE, target / '03_evaluator_report.md')
@@ -141,41 +524,103 @@ def create_run(run_id: str) -> None:
         'status': 'created',
         'required_sequence': [
             '00_spec_snapshot.md',
+            '01_run_contract.json',
             '01_sprint_contract.md',
             '02_generator_report.md',
             '03_evaluator_report.md',
         ],
+        'completed_gates': [],
     }
+    (target / 'manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
+    manifest['template_snapshot'] = build_template_snapshot(run_id, manifest, touched_paths=[f'{run_relative_dir(run_id)}'])
     (target / 'manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
     ok(f'created run: {target}')
 
 
 def validate_contract(run_id: str) -> None:
     target = run_dir(run_id)
+    run_contract = read_run_contract(run_id)
     contract = read_text(target / '01_sprint_contract.md')
     require_headings(contract, REQUIRED_CONTRACT_HEADINGS, 'sprint contract')
     require_no_placeholders(contract, 'sprint contract')
     touched_paths = extract_paths(contract)
-    validate_paths(touched_paths)
+    if touched_paths != run_contract['_touched_paths']:
+        fail('sprint contract Touched Paths do not match 01_run_contract.json')
     ok('sprint contract is structurally valid')
 
 
-def gate_generator(run_id: str) -> None:
-    target = run_dir(run_id)
+def freeze_contract(run_id: str) -> None:
     validate_contract(run_id)
-    contract = read_text(target / '01_sprint_contract.md')
-    touched_paths = extract_paths(contract)
+    run_contract = read_run_contract(run_id)
+    manifest = read_manifest(run_id)
+    template_snapshot = manifest.get('template_snapshot')
+    if not isinstance(template_snapshot, dict):
+        fail('template snapshot is missing; rerun create-run')
+    if manifest.get('frozen_contract_captured_via') == 'freeze-contract':
+        fail('contract is already frozen')
+    if freeze_proof_path(run_id).exists():
+        fail('runner-owned freeze proof already exists')
+
+    current_snapshot = build_run_artifact_snapshot(run_id)
+    expected_template_files = {
+        f'{run_relative_dir(run_id)}/00_spec_snapshot.md',
+        f'{run_relative_dir(run_id)}/02_generator_report.md',
+        f'{run_relative_dir(run_id)}/03_evaluator_report.md',
+    }
+    authored_contract_files = {
+        f'{run_relative_dir(run_id)}/01_run_contract.json',
+        f'{run_relative_dir(run_id)}/01_sprint_contract.md',
+    }
+
+    for path in expected_template_files:
+        if current_snapshot.get(path) != template_snapshot.get(path):
+            fail(f'non-contract artifact was edited before freeze: {path}')
+
+    for path in authored_contract_files:
+        if current_snapshot.get(path) == template_snapshot.get(path):
+            fail(f'authored contract file was not updated before freeze: {path}')
+
+    manifest['frozen_snapshot'] = current_snapshot
+    manifest['frozen_contract_captured_via'] = 'freeze-contract'
+    manifest['frozen_contract_fields'] = sorted(authored_contract_files)
+    write_manifest(run_id, manifest)
+    record_gate_completion(run_id, 'freeze-contract', 'contract_frozen')
+    write_freeze_proof(
+        run_id,
+        {
+            'run_id': run_id,
+            'captured_via': 'freeze-contract',
+            'contract_hashes': {
+                relative_path: hash_file(ROOT / relative_path)
+                for relative_path in sorted(authored_contract_files)
+            },
+            'run_artifact_snapshot': build_run_artifact_snapshot(run_id),
+            'manifest_hash': hash_file(run_dir(run_id) / 'manifest.json'),
+        },
+    )
+    ok('contract frozen')
+
+
+def gate_generator(run_id: str) -> None:
+    validate_contract(run_id)
+    run_contract = read_run_contract(run_id)
+    touched_paths = run_contract['_touched_paths']
     for touched_path in touched_paths:
         resolved = ROOT / touched_path
         if not resolved.exists():
             fail(f'touched path does not exist yet: {touched_path}')
-    ok('generator gate passed')
+    freeze_proof = validate_freeze_proof(run_id, require_prebaseline_state=True)
+    capture_baseline(run_id, touched_paths, freeze_proof)
+    record_gate_completion(run_id, 'gate-generator', 'baseline_captured')
+    ok('generator gate passed and baseline captured')
 
 
 def gate_close(run_id: str) -> None:
     target = run_dir(run_id)
     validate_contract(run_id)
-    contract = read_text(target / '01_sprint_contract.md')
+    run_contract = read_run_contract(run_id)
+    validate_freeze_proof(run_id, require_prebaseline_state=False)
+    validate_baseline_proof(run_id)
     generator = read_text(target / '02_generator_report.md')
     evaluator = read_text(target / '03_evaluator_report.md')
 
@@ -184,9 +629,32 @@ def gate_close(run_id: str) -> None:
     require_no_placeholders(generator, 'generator report')
     require_no_placeholders(evaluator, 'evaluator report')
 
-    touched_paths = extract_paths(contract)
-    changed_files = extract_changed_files(generator)
-    ensure_changed_files_within_scope(changed_files, touched_paths)
+    touched_paths = run_contract['_touched_paths']
+    reported_changed_files = sorted(file.replace('\\', '/') for file in extract_changed_files(generator))
+    ensure_changed_files_within_scope(reported_changed_files, touched_paths)
+    measured_changed_files = actual_changed_files(run_id, touched_paths)
+    current_git_dirty = {
+        path for path in git_status_files() if is_within_touched_paths(path, touched_paths)
+    }
+
+    if reported_changed_files != measured_changed_files:
+        missing = sorted(set(measured_changed_files) - set(reported_changed_files))
+        extra = sorted(set(reported_changed_files) - set(measured_changed_files))
+        fail(
+            'generator report changed files do not match measured changes'
+            + (f'; missing: {", ".join(missing)}' if missing else '')
+            + (f'; extra: {", ".join(extra)}' if extra else '')
+        )
+
+    invisible = sorted(path for path in measured_changed_files if path not in current_git_dirty)
+    if invisible:
+        fail(f'measured changed files are not visible in git status: {", ".join(invisible)}')
+
+    mapped_ids = extract_acceptance_mapping_ids(generator)
+
+    missing_ids = [item for item in run_contract['_criterion_ids'] if item not in mapped_ids]
+    if missing_ids:
+        fail(f'generator report is missing acceptance mappings for: {", ".join(missing_ids)}')
 
     if 'PASS' not in re.search(r'## Overall Verdict\n(.*?)(?:\n## |\Z)', evaluator, flags=re.S).group(1):
         fail('evaluator report is not PASS')
@@ -198,6 +666,7 @@ def gate_close(run_id: str) -> None:
     if len(checked) < 4:
         fail('not all contract compliance checks are marked complete')
 
+    record_gate_completion(run_id, 'gate-close', 'passed')
     ok('close gate passed: sprint may be treated as complete')
 
 
@@ -207,6 +676,9 @@ def main() -> None:
 
     create = sub.add_parser('create-run')
     create.add_argument('--run-id', required=True)
+
+    freeze = sub.add_parser('freeze-contract')
+    freeze.add_argument('--run-id', required=True)
 
     validate = sub.add_parser('validate-contract')
     validate.add_argument('--run-id', required=True)
@@ -221,6 +693,8 @@ def main() -> None:
 
     if args.command == 'create-run':
         create_run(args.run_id)
+    elif args.command == 'freeze-contract':
+        freeze_contract(args.run_id)
     elif args.command == 'validate-contract':
         validate_contract(args.run_id)
     elif args.command == 'gate-generator':

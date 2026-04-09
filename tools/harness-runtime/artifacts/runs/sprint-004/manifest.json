@@ -1,0 +1,37 @@
+{
+  "run_id": "sprint-004",
+  "status": "passed",
+  "required_sequence": [
+    "00_spec_snapshot.md",
+    "01_run_contract.json",
+    "01_sprint_contract.md",
+    "02_generator_report.md",
+    "03_evaluator_report.md"
+  ],
+  "baseline_snapshot": {
+    "tools/harness-runtime/README.md": "4ed37dec7ad07bb22cf86f1d52ed347d72af3d92e8f68112cd5027560230c010",
+    "tools/harness-runtime/artifacts/runs/sprint-004/00_spec_snapshot.md": "e7825ac4f88415c1615c67483f0aadc199ac1301828d8df933c46a30607bd0a4",
+    "tools/harness-runtime/artifacts/runs/sprint-004/01_run_contract.json": "f211347f95cb521735dcadc8442d7d7cc0259ee4673014cd1463550d77f2830c",
+    "tools/harness-runtime/artifacts/runs/sprint-004/01_sprint_contract.md": "013e86e887c4f88c023999e591f47111eac540e641af51eb1d0afe94d50dee63",
+    "tools/harness-runtime/artifacts/runs/sprint-004/02_generator_report.md": "0f7138f2d3c1530f424756af830be717c619db48e348691ccd74557277f9b957",
+    "tools/harness-runtime/artifacts/runs/sprint-004/03_evaluator_report.md": "adebe14ca58ea2a7c0d945fc4b954b58fe44a4e5b0886a56d0cd493019540bbf",
+    "tools/harness-runtime/artifacts/runs/sprint-004/manifest.json": "3eb33ba6be6fa4286bfd218c5d6b89dffe7f7ba575d089b29a1d0e4992c9b604",
+    "tools/harness-runtime/scripts/runner.py": "43df33539c89ff36641bf875ca90d300da24d47d14012a709b941eaf830307c4"
+  },
+  "baseline_git_dirty_files": [
+    "tools/harness-runtime/README.md",
+    "tools/harness-runtime/artifacts/runs/sprint-004/00_spec_snapshot.md",
+    "tools/harness-runtime/artifacts/runs/sprint-004/01_run_contract.json",
+    "tools/harness-runtime/artifacts/runs/sprint-004/01_sprint_contract.md",
+    "tools/harness-runtime/artifacts/runs/sprint-004/02_generator_report.md",
+    "tools/harness-runtime/artifacts/runs/sprint-004/03_evaluator_report.md",
+    "tools/harness-runtime/artifacts/runs/sprint-004/manifest.json",
+    "tools/harness-runtime/scripts/runner.py"
+  ],
+  "baseline_captured_via": "manual-precode-snapshot",
+  "completed_gates": [
+    "validate-contract",
+    "gate-generator",
+    "gate-close"
+  ]
+}

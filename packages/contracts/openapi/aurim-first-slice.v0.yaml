@@ -1,0 +1,416 @@
+openapi: 3.1.0
+info:
+  title: Aurim First Slice API
+  version: 0.1.0
+  description: >
+    Contract-first API for the initial Aurim vertical slice covering workspaces,
+    git workspace bindings, factory specs, factory runs, and factory artifacts.
+servers:
+  - url: /
+tags:
+  - name: Workspaces
+  - name: Git Workspaces
+  - name: Factory Specs
+  - name: Factory Runs
+  - name: Factory Artifacts
+paths:
+  /workspaces:
+    post:
+      tags: [Workspaces]
+      operationId: createWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/create-workspace-request.schema.json
+      responses:
+        "201":
+          description: Workspace created.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/workspace.schema.json
+    get:
+      tags: [Workspaces]
+      operationId: listWorkspaces
+      responses:
+        "200":
+          description: Workspace list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: ../schemas/workspace.schema.json
+  /workspaces/{workspace_id}:
+    get:
+      tags: [Workspaces]
+      operationId: getWorkspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Workspace details.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/workspace.schema.json
+    patch:
+      tags: [Workspaces]
+      operationId: updateWorkspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/update-workspace-request.schema.json
+      responses:
+        "200":
+          description: Updated workspace.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/workspace.schema.json
+
+  /workspaces/{workspace_id}/git-workspaces:
+    post:
+      tags: [Git Workspaces]
+      operationId: createGitWorkspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/create-git-workspace-request.schema.json
+      responses:
+        "201":
+          description: Git workspace binding created.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/git-workspace.schema.json
+    get:
+      tags: [Git Workspaces]
+      operationId: listGitWorkspaces
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Git workspace list for the workspace.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: ../schemas/git-workspace.schema.json
+  /git-workspaces/{git_workspace_id}:
+    get:
+      tags: [Git Workspaces]
+      operationId: getGitWorkspace
+      parameters:
+        - $ref: "#/components/parameters/GitWorkspaceId"
+      responses:
+        "200":
+          description: Git workspace details.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/git-workspace.schema.json
+    patch:
+      tags: [Git Workspaces]
+      operationId: updateGitWorkspace
+      parameters:
+        - $ref: "#/components/parameters/GitWorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/update-git-workspace-request.schema.json
+      responses:
+        "200":
+          description: Updated git workspace.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/git-workspace.schema.json
+    delete:
+      tags: [Git Workspaces]
+      operationId: archiveGitWorkspace
+      parameters:
+        - $ref: "#/components/parameters/GitWorkspaceId"
+      responses:
+        "202":
+          description: Git workspace archive accepted.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/git-workspace.schema.json
+
+  /workspaces/{workspace_id}/factory-specs:
+    post:
+      tags: [Factory Specs]
+      operationId: createFactorySpec
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/create-factory-spec-request.schema.json
+      responses:
+        "201":
+          description: Factory spec created.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-spec.schema.json
+    get:
+      tags: [Factory Specs]
+      operationId: listFactorySpecs
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Factory specs for a workspace.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: ../schemas/factory-spec.schema.json
+  /factory-specs/{factory_spec_id}:
+    get:
+      tags: [Factory Specs]
+      operationId: getFactorySpec
+      parameters:
+        - $ref: "#/components/parameters/FactorySpecId"
+      responses:
+        "200":
+          description: Factory spec details.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-spec.schema.json
+    patch:
+      tags: [Factory Specs]
+      operationId: updateFactorySpec
+      parameters:
+        - $ref: "#/components/parameters/FactorySpecId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/update-factory-spec-request.schema.json
+      responses:
+        "200":
+          description: Updated factory spec.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-spec.schema.json
+  /factory-specs/{factory_spec_id}/approve:
+    post:
+      tags: [Factory Specs]
+      operationId: approveFactorySpec
+      parameters:
+        - $ref: "#/components/parameters/FactorySpecId"
+      responses:
+        "200":
+          description: Approved factory spec.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-spec.schema.json
+
+  /factory-runs:
+    post:
+      tags: [Factory Runs]
+      operationId: createFactoryRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/create-factory-run-request.schema.json
+      responses:
+        "201":
+          description: Factory run created.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-run.schema.json
+  /factory-runs/{factory_run_id}:
+    get:
+      tags: [Factory Runs]
+      operationId: getFactoryRun
+      parameters:
+        - $ref: "#/components/parameters/FactoryRunId"
+      responses:
+        "200":
+          description: Factory run details.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-run.schema.json
+  /workspaces/{workspace_id}/factory-runs:
+    get:
+      tags: [Factory Runs]
+      operationId: listFactoryRuns
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Factory runs for the workspace.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: ../schemas/factory-run.schema.json
+  /factory-runs/{factory_run_id}/start:
+    post:
+      tags: [Factory Runs]
+      operationId: startFactoryRun
+      parameters:
+        - $ref: "#/components/parameters/FactoryRunId"
+      responses:
+        "200":
+          description: Factory run started.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-run.schema.json
+  /factory-runs/{factory_run_id}/close:
+    post:
+      tags: [Factory Runs]
+      operationId: closeFactoryRun
+      parameters:
+        - $ref: "#/components/parameters/FactoryRunId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/close-factory-run-request.schema.json
+      responses:
+        "200":
+          description: Factory run closed.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-run.schema.json
+        "409":
+          description: Factory run cannot close until evaluator result is PASS.
+
+  /factory-runs/{factory_run_id}/artifacts:
+    post:
+      tags: [Factory Artifacts]
+      operationId: createFactoryArtifact
+      parameters:
+        - $ref: "#/components/parameters/FactoryRunId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/create-factory-artifact-request.schema.json
+      responses:
+        "201":
+          description: Factory artifact created.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-artifact.schema.json
+    get:
+      tags: [Factory Artifacts]
+      operationId: listFactoryArtifacts
+      parameters:
+        - $ref: "#/components/parameters/FactoryRunId"
+      responses:
+        "200":
+          description: Factory artifacts for the run.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: ../schemas/factory-artifact.schema.json
+  /factory-artifacts/{factory_artifact_id}:
+    get:
+      tags: [Factory Artifacts]
+      operationId: getFactoryArtifact
+      parameters:
+        - $ref: "#/components/parameters/FactoryArtifactId"
+      responses:
+        "200":
+          description: Factory artifact details.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/factory-artifact.schema.json
+
+components:
+  parameters:
+    WorkspaceId:
+      name: workspace_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    GitWorkspaceId:
+      name: git_workspace_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FactorySpecId:
+      name: factory_spec_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FactoryRunId:
+      name: factory_run_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FactoryArtifactId:
+      name: factory_artifact_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid

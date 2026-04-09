@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-011-bypass",
+  "objective": "Attempt to bypass freeze-contract by forging manifest metadata before gate-generator.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/product-philosophy.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md"
+  ],
+  "blocking_rule": "If any required input or contract field is ambiguous, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Edit only the run contract, sprint contract, and manifest for a bypass attempt."
+  ],
+  "out_of_scope": [
+    "Calling freeze-contract.",
+    "Editing runner-owned proof files."
+  ],
+  "touched_paths": [
+    "tools/harness-runtime/artifacts/runs/sprint-011-bypass"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "gate-generator must fail without a runner-owned freeze proof even if manifest metadata is forged.",
+      "required_evidence": [
+        "python tools/harness-runtime/scripts/runner.py gate-generator --run-id sprint-011-bypass"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "Spec was not reinterpreted.",
+    "Out-of-scope work was not added.",
+    "Changed files stayed within touched paths.",
+    "Every acceptance criterion has concrete evidence."
+  ]
+}

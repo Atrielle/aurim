@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-012-proof",
+  "objective": "Prove the runner-owned freeze and baseline proof flow against a real backend file by making one minimal non-behavioral change in apps/backend/gradle.properties.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/product-philosophy.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md"
+  ],
+  "blocking_rule": "If any required input or contract field is ambiguous, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Author and freeze the sprint contract.",
+    "Capture baseline through gate-generator.",
+    "Add one explanatory comment to apps/backend/gradle.properties after baseline capture."
+  ],
+  "out_of_scope": [
+    "Changing runtime behavior or dependency versions.",
+    "Editing any product file other than apps/backend/gradle.properties.",
+    "Editing runner-owned proof files."
+  ],
+  "touched_paths": [
+    "apps/backend/gradle.properties",
+    "tools/harness-runtime/artifacts/runs/sprint-012-proof"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "The run completes through freeze-contract, gate-generator, and gate-close with runner-owned proof files present.",
+      "required_evidence": [
+        "tools/harness-runtime/.runner-state/freeze-proofs/sprint-012-proof.json",
+        "tools/harness-runtime/.runner-state/baseline-proofs/sprint-012-proof.json",
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-012-proof"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "The only product change after baseline capture is apps/backend/gradle.properties.",
+      "required_evidence": [
+        "apps/backend/gradle.properties",
+        "tools/harness-runtime/artifacts/runs/sprint-012-proof/02_generator_report.md"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "Spec was not reinterpreted.",
+    "Out-of-scope work was not added.",
+    "Changed files stayed within touched paths.",
+    "Every acceptance criterion has concrete evidence."
+  ]
+}

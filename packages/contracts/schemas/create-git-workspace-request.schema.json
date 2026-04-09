@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrielle.io/aurim/contracts/schemas/create-git-workspace-request.schema.json",
+  "title": "CreateGitWorkspaceRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["provider", "repository_url", "default_branch", "created_by"],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "enum": ["github", "gitlab", "bitbucket", "generic"]
+    },
+    "repository_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "default_branch": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    }
+  }
+}

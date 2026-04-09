@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-004",
+  "objective": "Enforce generator changed-files reporting against a captured baseline and current git-visible workspace state so lower agents cannot self-report arbitrary file lists.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md",
+    "tools/harness-runtime/README.md"
+  ],
+  "blocking_rule": "If the harness cannot capture a baseline for touched paths before coding, stop and write BLOCKED instead of guessing changed files after the fact.",
+  "in_scope": [
+    "Capture a baseline snapshot for touched paths before generator work.",
+    "Make gate-close compare generator-reported changed files against actual changed files derived from baseline and git-visible workspace state.",
+    "Document the stricter baseline capture flow in the harness README."
+  ],
+  "out_of_scope": [
+    "Product backend or frontend feature changes.",
+    "Replacing the harness with an always-on autonomous execution runtime.",
+    "Changing harness files outside the declared touched paths for this sprint."
+  ],
+  "touched_paths": [
+    "tools/harness-runtime/README.md",
+    "tools/harness-runtime/scripts/runner.py",
+    "tools/harness-runtime/artifacts/runs/sprint-004"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "gate-generator captures a baseline snapshot for the declared touched paths before coding begins.",
+      "required_evidence": [
+        "tools/harness-runtime/scripts/runner.py",
+        "tools/harness-runtime/artifacts/runs/sprint-004/manifest.json"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "gate-close fails if the generator report changed-file list does not match actual changed files from the baseline and git-visible dirty state.",
+      "required_evidence": [
+        "tools/harness-runtime/scripts/runner.py"
+      ]
+    },
+    {
+      "id": "AC-003",
+      "statement": "The README explains that gate-generator must run before coding to capture the baseline.",
+      "required_evidence": [
+        "tools/harness-runtime/README.md"
+      ]
+    },
+    {
+      "id": "AC-004",
+      "statement": "The sprint-004 harness run passes under the stricter enforcement rules.",
+      "required_evidence": [
+        "python tools/harness-runtime/scripts/runner.py gate-generator --run-id sprint-004",
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-004"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "Baseline capture happens before coding for the declared touched paths.",
+    "Changed-file enforcement is based on measured state rather than self-report alone.",
+    "Touched-path scope remains tight.",
+    "The stricter enforcement passes on a concrete sprint run."
+  ]
+}

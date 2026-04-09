@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrielle.io/aurim/contracts/schemas/git-workspace.schema.json",
+  "title": "GitWorkspace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "git_workspace_id",
+    "workspace_id",
+    "provider",
+    "repository_url",
+    "default_branch",
+    "connection_status",
+    "created_at",
+    "created_by"
+  ],
+  "properties": {
+    "git_workspace_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workspace_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "provider": {
+      "type": "string",
+      "enum": ["github", "gitlab", "bitbucket", "generic"]
+    },
+    "repository_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "default_branch": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": ["connected", "disconnected", "error", "archived"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    }
+  }
+}

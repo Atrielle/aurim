@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-007",
+  "objective": "Prove the explicit freeze-contract harness flow where authored run contracts are frozen before baseline capture.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/governance-model.md",
+    "tools/harness-runtime/README.md"
+  ],
+  "blocking_rule": "If the run contract cannot be frozen before baseline capture, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Author the run contract files.",
+    "Freeze the contract state before baseline capture.",
+    "Pass the harness gates under the frozen-contract flow."
+  ],
+  "out_of_scope": [
+    "Product backend changes.",
+    "Manual baseline seeding.",
+    "Any harness changes outside the sprint-007 artifact directory."
+  ],
+  "touched_paths": [
+    "tools/harness-runtime/artifacts/runs/sprint-007"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "The authored run contract can be frozen with freeze-contract before baseline capture.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-007/manifest.json"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "gate-generator only accepts the frozen contract state and captures a baseline automatically.",
+      "required_evidence": [
+        "python tools/harness-runtime/scripts/runner.py gate-generator --run-id sprint-007"
+      ]
+    },
+    {
+      "id": "AC-003",
+      "statement": "gate-close succeeds after the freeze-contract step.",
+      "required_evidence": [
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-007"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "The run uses the freeze-contract step before baseline capture.",
+    "No manual baseline seeding is used.",
+    "Touched-path scope remains limited to the run directory.",
+    "The run closes successfully."
+  ]
+}

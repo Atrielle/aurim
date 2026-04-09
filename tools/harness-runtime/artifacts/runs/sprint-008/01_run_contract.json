@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-008",
+  "objective": "Prove that runner-owned manifest completion fields are written by freeze-contract, gate-generator, and gate-close on a clean automatic harness run.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "tools/harness-runtime/README.md"
+  ],
+  "blocking_rule": "If any touched path outside the current run artifact directory is required, stop and narrow the run instead of guessing.",
+  "in_scope": [
+    "Use only the sprint-008 run directory as touched scope.",
+    "Drive the run through freeze-contract, gate-generator, and gate-close.",
+    "Verify that manifest completion fields are produced by the runner."
+  ],
+  "out_of_scope": [
+    "Any product code changes.",
+    "Any harness changes outside the sprint-008 run directory.",
+    "Manual edits to manifest completion fields."
+  ],
+  "touched_paths": [
+    "tools/harness-runtime/artifacts/runs/sprint-008"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "freeze-contract writes its own completion evidence into manifest.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-008/manifest.json"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "gate-generator writes its own completion evidence into manifest.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-008/manifest.json"
+      ]
+    },
+    {
+      "id": "AC-003",
+      "statement": "gate-close writes passed status and completed_gates into manifest.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-008/manifest.json",
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-008"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "The run uses only its own artifact directory as scope.",
+    "Manifest completion fields are runner-authored.",
+    "The run passes the full freeze-contract to gate-close flow."
+  ]
+}

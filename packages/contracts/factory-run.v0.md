@@ -30,6 +30,7 @@ Factory Run represents one controlled execution of planner, generator, and evalu
 - A run must reference one sprint contract snapshot.
 - A run must record touched paths before generator execution.
 - A run cannot be closed without evaluator `PASS`.
+- Failed evaluation remains visible in evaluator artifacts and blocks close, but is not persisted as a terminal run status in v0.
 
 ## States
 
@@ -37,8 +38,6 @@ Factory Run represents one controlled execution of planner, generator, and evalu
 - `planned`
 - `running`
 - `blocked`
-- `passed`
-- `failed`
 - `closed`
 
 ## API Surface
@@ -54,8 +53,6 @@ Factory Run represents one controlled execution of planner, generator, and evalu
 - `factory_run.created`
 - `factory_run.started`
 - `factory_run.blocked`
-- `factory_run.passed`
-- `factory_run.failed`
 - `factory_run.closed`
 
 ## Notes

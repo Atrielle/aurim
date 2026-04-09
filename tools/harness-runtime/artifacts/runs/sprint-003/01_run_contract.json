@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-003",
+  "objective": "Tighten harness execution contracts so subagents receive machine-checkable scope, touched paths, and acceptance criteria instead of relying only on loose markdown summaries.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "docs/foundation/governance-model.md",
+    "docs/foundation/cloud-handoff.md",
+    "tools/harness-runtime/README.md"
+  ],
+  "blocking_rule": "If the harness cannot prove scope, touched paths, or acceptance evidence mechanically, stop and write BLOCKED instead of guessing.",
+  "in_scope": [
+    "Add a structured JSON run contract template for harness runs.",
+    "Teach the harness prompts and runner to treat the JSON run contract as authoritative.",
+    "Backfill sprint-002 so the stricter harness flow is demonstrated on a completed run."
+  ],
+  "out_of_scope": [
+    "Product backend or frontend feature work outside what already exists for the first slice.",
+    "Replacing the harness with a fully autonomous planner-generator-evaluator runtime.",
+    "Changing files outside the declared harness paths."
+  ],
+  "touched_paths": [
+    "tools/harness-runtime/README.md",
+    "tools/harness-runtime/contracts/generator-report.template.md",
+    "tools/harness-runtime/contracts/run-contract.template.json",
+    "tools/harness-runtime/prompts/planner.system.md",
+    "tools/harness-runtime/prompts/generator.system.md",
+    "tools/harness-runtime/prompts/evaluator.system.md",
+    "tools/harness-runtime/scripts/runner.py",
+    "tools/harness-runtime/artifacts/runs/sprint-002",
+    "tools/harness-runtime/artifacts/runs/sprint-003"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "Harness runs have a machine-readable JSON execution contract template.",
+      "required_evidence": [
+        "tools/harness-runtime/contracts/run-contract.template.json"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "Harness prompts and runner enforce the JSON run contract as the authoritative scope and evidence contract.",
+      "required_evidence": [
+        "tools/harness-runtime/prompts/planner.system.md",
+        "tools/harness-runtime/prompts/generator.system.md",
+        "tools/harness-runtime/prompts/evaluator.system.md",
+        "tools/harness-runtime/scripts/runner.py"
+      ]
+    },
+    {
+      "id": "AC-003",
+      "statement": "Completed runs can be backfilled to the stricter contract format and still pass local gates.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-002/01_run_contract.json",
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-002"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "The harness scope is explicit and machine-checkable.",
+    "Touched paths are declared for every harness file that changed.",
+    "Acceptance mapping uses criterion IDs rather than free-form prose.",
+    "The stricter flow still passes on a concrete run."
+  ]
+}

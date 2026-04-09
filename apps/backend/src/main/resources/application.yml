@@ -1,4 +1,5 @@
 spring:
+  # Local defaults keep backend wiring simple until environment-specific config is introduced.
   application:
     name: aurim-backend
   main:

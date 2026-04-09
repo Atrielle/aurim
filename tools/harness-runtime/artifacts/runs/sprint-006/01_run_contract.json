@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "run_id": "sprint-006",
+  "objective": "Prove that pre-baseline exemptions only apply when run artifact files still match their create-run template hashes.",
+  "authoritative_inputs": [
+    "tools/harness-runtime/specs/product-spec.md",
+    "tools/harness-runtime/README.md"
+  ],
+  "blocking_rule": "If any run artifact file differs from its create-run template hash before gate-generator, fail instead of treating it as baseline state.",
+  "in_scope": [
+    "Use only the sprint-006 run directory as the touched path.",
+    "Keep all pre-baseline artifact files identical to their create-run template hashes.",
+    "Pass gate-close under the stricter template-hash exemption rule."
+  ],
+  "out_of_scope": [
+    "Product code changes.",
+    "Harness changes outside the sprint-006 run directory.",
+    "Any manual baseline seeding."
+  ],
+  "touched_paths": [
+    "tools/harness-runtime/artifacts/runs/sprint-006"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "statement": "gate-generator captures the baseline automatically for sprint-006.",
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-006/manifest.json"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "Pre-baseline run artifact files are only exempt when they still match the create-run template hashes.",
+      "required_evidence": [
+        "tools/harness-runtime/scripts/runner.py",
+        "tools/harness-runtime/artifacts/runs/sprint-006/manifest.json"
+      ]
+    },
+    {
+      "id": "AC-003",
+      "statement": "sprint-006 passes gate-close without manual baseline seeding.",
+      "required_evidence": [
+        "python tools/harness-runtime/scripts/runner.py gate-close --run-id sprint-006"
+      ]
+    }
+  ],
+  "evaluator_checks": [
+    "The run uses only its own artifact directory as touched scope.",
+    "Baseline capture happened through gate-generator.",
+    "Template-hash exemption is enforced for pre-baseline artifact files.",
+    "The run closes successfully."
+  ]
+}
