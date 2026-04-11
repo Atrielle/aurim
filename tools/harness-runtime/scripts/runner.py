@@ -7,8 +7,8 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-HARNESS = ROOT / 'harness'
+ROOT = Path(__file__).resolve().parents[3]
+HARNESS = ROOT / 'tools' / 'harness-runtime'
 RUNS = HARNESS / 'artifacts' / 'runs'
 SPEC = HARNESS / 'specs' / 'product-spec.md'
 SPRINT_TEMPLATE = HARNESS / 'contracts' / 'sprint-contract.template.md'
@@ -93,7 +93,7 @@ def extract_paths(contract_text: str) -> list[str]:
 
 
 def validate_paths(paths: list[str]) -> None:
-    allowed_roots = ['frontend/', 'backend/', 'harness/']
+    allowed_roots = ['apps/', 'tools/', 'packages/', 'docs/']
     for item in paths:
         normalized = item.replace('\\', '/')
         if not any(normalized.startswith(root) for root in allowed_roots):
