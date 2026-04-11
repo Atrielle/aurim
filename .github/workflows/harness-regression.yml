@@ -1,0 +1,38 @@
+name: Harness Regression
+
+on:
+  pull_request:
+    paths:
+      - 'tools/harness-runtime/**'
+      - '.github/workflows/harness-regression.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'tools/harness-runtime/**'
+      - '.github/workflows/harness-regression.yml'
+
+jobs:
+  harness-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile harness scripts
+        run: |
+          python -m py_compile \
+            tools/harness-runtime/scripts/runner.py \
+            tools/harness-runtime/scripts/unit_gate_regression.py \
+            tools/harness-runtime/scripts/ui_server.py \
+            tools/harness-runtime/scripts/ui/commands.py \
+            tools/harness-runtime/scripts/ui/page.py \
+            tools/harness-runtime/scripts/ui/server.py
+
+      - name: Run harness unit gate regression
+        run: python tools/harness-runtime/scripts/unit_gate_regression.py
