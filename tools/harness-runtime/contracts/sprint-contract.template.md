@@ -32,6 +32,14 @@
 - [ ] 어떤 화면, API, contract, artifact로 증명할지
 - [ ] 어떤 명령 결과로 증명할지
 
+## Work Units
+
+- [ ] WU-001 | 목적: 한 단위 작업 목표 | AC: AC-001 | 경로: packages/contracts/... | 선행: 없음 | 예산: input 12000 / output 3000
+
+## Unit Dependencies
+
+- [ ] WU-001 <- (none)
+
 ## Evaluator Checks
 
 - [ ] spec 위반 없음

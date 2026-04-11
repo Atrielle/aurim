@@ -27,6 +27,27 @@
       ]
     }
   ],
+  "work_units": [
+    {
+      "id": "WU-001",
+      "title": "Replace with one focused unit title.",
+      "objective": "Replace with one concrete deliverable for this unit.",
+      "touched_paths": [
+        "packages/contracts/..."
+      ],
+      "acceptance_criteria_ids": [
+        "AC-001"
+      ],
+      "required_evidence": [
+        "Replace with one concrete evidence output for this unit."
+      ],
+      "agent_budget": {
+        "max_input_tokens": 12000,
+        "max_output_tokens": 3000,
+        "depends_on": []
+      }
+    }
+  ],
   "evaluator_checks": [
     "Spec was not reinterpreted.",
     "Out-of-scope work was not added.",
