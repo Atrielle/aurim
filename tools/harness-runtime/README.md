@@ -73,4 +73,40 @@ unit-level 실패 시나리오를 한 번에 점검하려면 아래 명령을 �
 - UI 코드는 `scripts/ui/commands.py`(명령 규약/실행), `scripts/ui/server.py`(HTTP API), `scripts/ui/page.py`(뷰 템플릿)로 분리되어 확장 가능하게 구성했다.
 - `collect-unit`은 `unit-id`와 `report path`를 반드시 입력해야 한다.
 - UI 출력에는 실행 명령과 stdout/stderr가 함께 표시되어 증거 추적에 사용할 수 있다.
+- `bootstrap run` 버튼은 시퀀스 프리셋을 실행한다. 기본은 `bootstrap(create-run -> run-status)`이고, `validate_plan(validate-contract -> plan-units -> run-status)`, `unit_gate_ready(gate-units -> run-status)`도 선택 가능하다.
+- 시퀀스 실행 결과는 run artifact의 `06_sequence_reports/<timestamp>.json`으로 저장되어 추적 가능하다.
+- `run-status` 출력에는 `last_sequence_report_ref`/`sequence_reports`가 포함되어 최근 자동 시퀀스 이력을 확인할 수 있다.
+- `open last sequence report` 버튼으로 마지막 시퀀스 리포트 JSON을 UI에서 바로 열어볼 수 있다.
+- Known Runs 선택 시 `run-status`를 자동 조회해 마지막 시퀀스 리포트를 UI 상태에 동기화한다.
+
+## Quick Start (Copy/Paste)
+
+아래 순서만 실행하면 바로 UI에서 하네스 플로우를 사용할 수 있다.
+
+```bash
+# 1) UI 서버 실행
+python tools/harness-runtime/scripts/ui_server.py
+```
+
+브라우저에서 `http://127.0.0.1:8787` 열기.
+
+UI에서 권장 순서:
+1. `Run ID` 입력
+2. `bootstrap run`
+3. 필요하면 `validate_plan` preset 선택 후 다시 `bootstrap run`
+4. `open last sequence report`로 결과 확인
+
+터미널에서 상태 확인이 필요하면:
+
+```bash
+python tools/harness-runtime/scripts/runner.py run-status --run-id <run-id>
+```
+
+## CI Automation
+
+하네스 회귀 검증은 GitHub Actions workflow(`.github/workflows/harness-regression.yml`)로 자동 실행된다.
+
+- `tools/harness-runtime/**` 관련 변경이 포함된 PR에서 자동 실행
+- `main` push에서도 동일 회귀 검증 재실행
+- 실행 항목: 스크립트 컴파일 + `unit_gate_regression.py`
 

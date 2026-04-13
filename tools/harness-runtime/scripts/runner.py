@@ -1047,6 +1047,8 @@ def run_status(run_id: str) -> None:
         'dispatched_units': manifest.get('dispatched_units', []),
         'collected_units': manifest.get('collected_units', []),
         'unit_gate': manifest.get('unit_gate', 'pending'),
+        'last_sequence_report_ref': manifest.get('last_sequence_report_ref'),
+        'sequence_reports': manifest.get('sequence_reports', []),
     }
     unit_plan_path = run_dir(run_id) / '04_unit_plan.json'
     if unit_plan_path.exists():

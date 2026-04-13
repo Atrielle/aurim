@@ -78,6 +78,8 @@ HTML_PAGE = """<!doctype html>
   </section>
 </div>
 <script>
+let lastSequenceReportRef = null;
+
 async function postJson(url, payload) {
   const response = await fetch(url, {
     method: 'POST',
@@ -108,10 +110,77 @@ async function runCmd(command) {
   await loadRuns();
 }
 
+async function runBootstrap() {
+  const payload = {
+    run_id: selectedRunId(),
+    preset: document.getElementById('sequencePreset').value
+  };
+  const result = await postJson('/api/run-sequence', payload);
+  const lines = [
+    `sequence: ${result.sequence ? result.sequence.join(' -> ') : '(none)'}`,
+    `success: ${result.success}`,
+    `report: ${result.sequence_report_ref || '(not saved)'}`
+  ];
+  for (const step of (result.steps || [])) {
+    lines.push(`\n# ${step.command} (exit=${step.exit_code})`);
+    lines.push(step.output || '(no output)');
+  }
+  lastSequenceReportRef = result.sequence_report_ref || null;
+  document.getElementById('command').textContent = 'bootstrap run sequence';
+  document.getElementById('output').textContent = lines.join('\n');
+  await loadRuns();
+}
+
+async function openLastSequenceReport() {
+  const ref = lastSequenceReportRef;
+  if (!ref) {
+    document.getElementById('command').textContent = 'open last sequence report';
+    document.getElementById('output').textContent = 'No sequence report reference available yet.';
+    return;
+  }
+  const response = await fetch(`/api/sequence-report?ref=${encodeURIComponent(ref)}`);
+  const payload = await response.json();
+  document.getElementById('command').textContent = `sequence report: ${ref}`;
+  document.getElementById('output').textContent = JSON.stringify(payload, null, 2);
+}
+
 async function runRegression() {
   const result = await postJson('/api/run-regression', {});
   document.getElementById('command').textContent = result.command_line;
   document.getElementById('output').textContent = result.output;
+}
+
+async function loadSequences() {
+  const response = await fetch('/api/sequences');
+  const data = await response.json();
+  const select = document.getElementById('sequencePreset');
+  select.innerHTML = '';
+  for (const preset of data.presets || []) {
+    const option = document.createElement('option');
+    option.value = preset;
+    option.textContent = preset;
+    select.appendChild(option);
+  }
+  if (!select.value && select.options.length > 0) {
+    select.value = 'bootstrap';
+  }
+}
+
+async function syncSelectedRunStatus() {
+  const selected = document.getElementById('knownRuns').value.trim();
+  if (!selected) return;
+  document.getElementById('runId').value = selected;
+  const response = await fetch(`/api/run-status?run_id=${encodeURIComponent(selected)}`);
+  const status = await response.json();
+  if (status.last_sequence_report_ref) {
+    lastSequenceReportRef = status.last_sequence_report_ref;
+    document.getElementById('command').textContent = `run status: ${selected}`;
+    document.getElementById('output').textContent = JSON.stringify({
+      unit_gate: status.unit_gate,
+      last_sequence_report_ref: status.last_sequence_report_ref,
+      sequence_reports: status.sequence_reports || []
+    }, null, 2);
+  }
 }
 
 async function loadRuns() {
@@ -127,7 +196,8 @@ async function loadRuns() {
   }
 }
 
-loadRuns();
+loadSequences();
+loadRuns().then(() => syncSelectedRunStatus());
 </script>
 </body>
 </html>"""
