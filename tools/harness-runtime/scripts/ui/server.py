@@ -5,7 +5,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from .commands import known_runs, run_regression, run_runner_command
+from .commands import known_runs, read_run_status, read_sequence_report, run_regression, run_runner_command, run_sequence, sequence_names
 from .page import HTML_PAGE
 
 
@@ -44,6 +44,27 @@ class HarnessUIHandler(BaseHTTPRequestHandler):
         if parsed.path == '/api/runs':
             _json_response(self, {'runs': known_runs()})
             return
+        if parsed.path == '/api/sequences':
+            _json_response(self, {'presets': sequence_names()})
+            return
+        if parsed.path == '/api/sequence-report':
+            ref = parse_qs(parsed.query).get('ref', [''])[-1].strip()
+            try:
+                payload = read_sequence_report(ref)
+            except ValueError as exc:
+                _json_response(self, {'error': str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            _json_response(self, payload)
+            return
+        if parsed.path == '/api/run-status':
+            run_id = parse_qs(parsed.query).get('run_id', [''])[-1].strip()
+            try:
+                payload = read_run_status(run_id)
+            except ValueError as exc:
+                _json_response(self, {'error': str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            _json_response(self, payload)
+            return
         _json_response(self, {'error': 'not found'}, status=HTTPStatus.NOT_FOUND)
 
     def do_POST(self) -> None:  # noqa: N802
@@ -57,6 +78,18 @@ class HarnessUIHandler(BaseHTTPRequestHandler):
                     run_id=str(payload.get('run_id', '')).strip(),
                     unit_id=str(payload.get('unit_id', '')).strip(),
                     report_path=str(payload.get('report', '')).strip(),
+                )
+            except ValueError as exc:
+                _json_response(self, {'error': str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            _json_response(self, result)
+            return
+
+        if parsed.path == '/api/run-sequence':
+            try:
+                result = run_sequence(
+                    run_id=str(payload.get('run_id', '')).strip(),
+                    preset=str(payload.get('preset', '')).strip() or None,
                 )
             except ValueError as exc:
                 _json_response(self, {'error': str(exc)}, status=HTTPStatus.BAD_REQUEST)
