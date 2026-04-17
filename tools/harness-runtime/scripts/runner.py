@@ -48,6 +48,14 @@ REQUIRED_EVALUATOR_HEADINGS = [
     '## Overall Verdict',
 ]
 
+REQUIRED_UNIT_REPORT_HEADINGS = [
+    '# Unit Report',
+    '## Summary',
+    '## Changed Files',
+    '## Acceptance Mapping',
+    '## Evidence',
+]
+
 REQUIRED_RUN_CONTRACT_KEYS = [
     'version',
     'run_id',
@@ -58,6 +66,7 @@ REQUIRED_RUN_CONTRACT_KEYS = [
     'out_of_scope',
     'touched_paths',
     'acceptance_criteria',
+    'work_units',
     'evaluator_checks',
 ]
 
@@ -65,6 +74,16 @@ RUN_MANIFEST_TEMPLATE_KEYS = [
     'run_id',
     'status',
     'required_sequence',
+]
+
+REQUIRED_WORK_UNIT_KEYS = [
+    'id',
+    'title',
+    'objective',
+    'touched_paths',
+    'acceptance_criteria_ids',
+    'required_evidence',
+    'agent_budget',
 ]
 
 PLACEHOLDER_SNIPPETS = [
@@ -331,8 +350,69 @@ def read_run_contract(run_id: str) -> dict:
         require_string_list(item.get('required_evidence'), f'acceptance_criteria[{index}].required_evidence')
 
     require_string_list(contract['evaluator_checks'], 'run contract evaluator_checks')
+    work_units = contract['work_units']
+    if not isinstance(work_units, list) or not work_units:
+        fail('run contract work_units must be a non-empty list')
+
+    unit_ids: list[str] = []
+    for index, unit in enumerate(work_units):
+        if not isinstance(unit, dict):
+            fail(f'work_units[{index}] must be an object')
+        missing_unit_keys = [key for key in REQUIRED_WORK_UNIT_KEYS if key not in unit]
+        if missing_unit_keys:
+            fail(f'work_units[{index}] missing keys: {", ".join(missing_unit_keys)}')
+
+        unit_id = require_non_empty_string(unit['id'], f'work_units[{index}].id')
+        if unit_id in unit_ids:
+            fail(f'duplicate work unit id: {unit_id}')
+        unit_ids.append(unit_id)
+
+        require_non_empty_string(unit['title'], f'work_units[{index}].title')
+        require_non_empty_string(unit['objective'], f'work_units[{index}].objective')
+        unit_paths = require_string_list(unit['touched_paths'], f'work_units[{index}].touched_paths')
+        validate_paths(unit_paths)
+        for unit_path in unit_paths:
+            if not is_within_touched_paths(unit_path, touched_paths):
+                fail(f'work_units[{index}] touched path outside run touched_paths: {unit_path}')
+
+        mapped_criteria = require_string_list(
+            unit['acceptance_criteria_ids'],
+            f'work_units[{index}].acceptance_criteria_ids',
+        )
+        unknown_criteria = [criterion for criterion in mapped_criteria if criterion not in criterion_ids]
+        if unknown_criteria:
+            fail(f'work_units[{index}] has unknown acceptance_criteria_ids: {", ".join(unknown_criteria)}')
+
+        require_string_list(unit['required_evidence'], f'work_units[{index}].required_evidence')
+        budget = unit['agent_budget']
+        if not isinstance(budget, dict):
+            fail(f'work_units[{index}].agent_budget must be an object')
+        max_input_tokens = budget.get('max_input_tokens')
+        max_output_tokens = budget.get('max_output_tokens')
+        if not isinstance(max_input_tokens, int) or max_input_tokens <= 0:
+            fail(f'work_units[{index}].agent_budget.max_input_tokens must be a positive integer')
+        if not isinstance(max_output_tokens, int) or max_output_tokens <= 0:
+            fail(f'work_units[{index}].agent_budget.max_output_tokens must be a positive integer')
+        depends_on = budget.get('depends_on', [])
+        if depends_on is None:
+            depends_on = []
+        if not isinstance(depends_on, list):
+            fail(f'work_units[{index}].agent_budget.depends_on must be a list when provided')
+        unit['agent_budget']['depends_on'] = [
+            require_non_empty_string(dep, f'work_units[{index}].agent_budget.depends_on')
+            for dep in depends_on
+        ]
+
+    for unit in work_units:
+        for dependency in unit['agent_budget']['depends_on']:
+            if dependency not in unit_ids:
+                fail(f'unknown work unit dependency: {dependency}')
+            if dependency == unit['id']:
+                fail(f'work unit cannot depend on itself: {dependency}')
+
     contract['_criterion_ids'] = criterion_ids
     contract['_touched_paths'] = touched_paths
+    contract['_work_unit_ids'] = unit_ids
     return contract
 
 
@@ -374,6 +454,12 @@ def record_gate_completion(run_id: str, gate_name: str, status: str) -> None:
     write_manifest(run_id, manifest)
 
 
+def ensure_gate_completed(manifest: dict, gate_name: str, *, context: str) -> None:
+    completed_gates = manifest.get('completed_gates', [])
+    if not isinstance(completed_gates, list) or gate_name not in completed_gates:
+        fail(f'{gate_name} must pass before {context}')
+
+
 def extract_changed_files(generator_text: str) -> list[str]:
     match = re.search(r'## Changed Files\n(.*?)(?:\n## |\Z)', generator_text, flags=re.S)
     if not match:
@@ -386,6 +472,16 @@ def extract_changed_files(generator_text: str) -> list[str]:
 
 def extract_acceptance_mapping_ids(generator_text: str) -> list[str]:
     match = re.search(r'## Acceptance Mapping\n(.*?)(?:\n## |\Z)', generator_text, flags=re.S)
+    if not match:
+        fail('could not find Acceptance Mapping section')
+    items = re.findall(r'- \[(?:x|X)\] ([A-Z]{2}-\d{3}) -> .+', match.group(1))
+    if not items:
+        fail('Acceptance Mapping must contain checked criterion IDs')
+    return items
+
+
+def extract_acceptance_mapping_ids_generic(text: str) -> list[str]:
+    match = re.search(r'## Acceptance Mapping\n(.*?)(?:\n## |\Z)', text, flags=re.S)
     if not match:
         fail('could not find Acceptance Mapping section')
     items = re.findall(r'- \[(?:x|X)\] ([A-Z]{2}-\d{3}) -> .+', match.group(1))
@@ -604,6 +700,8 @@ def freeze_contract(run_id: str) -> None:
 def gate_generator(run_id: str) -> None:
     validate_contract(run_id)
     run_contract = read_run_contract(run_id)
+    manifest = read_manifest(run_id)
+    ensure_gate_completed(manifest, 'gate-units', context='gate-generator')
     touched_paths = run_contract['_touched_paths']
     for touched_path in touched_paths:
         resolved = ROOT / touched_path
@@ -619,6 +717,8 @@ def gate_close(run_id: str) -> None:
     target = run_dir(run_id)
     validate_contract(run_id)
     run_contract = read_run_contract(run_id)
+    manifest = read_manifest(run_id)
+    ensure_gate_completed(manifest, 'gate-units', context='gate-close')
     validate_freeze_proof(run_id, require_prebaseline_state=False)
     validate_baseline_proof(run_id)
     generator = read_text(target / '02_generator_report.md')
@@ -670,6 +770,302 @@ def gate_close(run_id: str) -> None:
     ok('close gate passed: sprint may be treated as complete')
 
 
+def topological_work_units(work_units: list[dict]) -> list[dict]:
+    by_id = {unit['id']: unit for unit in work_units}
+    dependency_counts = {unit['id']: len(unit['agent_budget']['depends_on']) for unit in work_units}
+    reverse_edges: dict[str, list[str]] = {unit['id']: [] for unit in work_units}
+    for unit in work_units:
+        for dependency in unit['agent_budget']['depends_on']:
+            reverse_edges[dependency].append(unit['id'])
+
+    ready = [unit_id for unit_id, count in dependency_counts.items() if count == 0]
+    ordered: list[str] = []
+    while ready:
+        current = sorted(ready)[0]
+        ready.remove(current)
+        ordered.append(current)
+        for child in reverse_edges[current]:
+            dependency_counts[child] -= 1
+            if dependency_counts[child] == 0:
+                ready.append(child)
+
+    if len(ordered) != len(work_units):
+        fail('work unit dependency graph contains a cycle')
+    return [by_id[unit_id] for unit_id in ordered]
+
+
+def read_unit_plan(run_id: str) -> dict:
+    target = run_dir(run_id) / '04_unit_plan.json'
+    if not target.exists():
+        fail('unit plan missing; run plan-units first')
+    payload = read_json(target)
+    if payload.get('run_id') != run_id:
+        fail('unit plan run_id mismatch')
+    units = payload.get('units')
+    if not isinstance(units, list) or not units:
+        fail('unit plan units is invalid')
+    return payload
+
+
+def write_unit_plan(run_id: str, payload: dict) -> None:
+    write_json(run_dir(run_id) / '04_unit_plan.json', payload)
+
+
+def unit_reports_dir(run_id: str) -> Path:
+    path = run_dir(run_id) / '05_unit_reports'
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def unit_report_path(run_id: str, unit_id: str) -> Path:
+    return unit_reports_dir(run_id) / f'{unit_id}.md'
+
+
+def unit_evidence_path(run_id: str, unit_id: str) -> Path:
+    return unit_reports_dir(run_id) / f'{unit_id}.evidence.json'
+
+
+def find_unit(plan: dict, unit_id: str) -> dict:
+    for unit in plan['units']:
+        if unit.get('id') == unit_id:
+            return unit
+    fail(f'unit not found in plan: {unit_id}')
+    raise AssertionError('unreachable')
+
+
+def ensure_unit_dependencies_satisfied(plan: dict, unit: dict) -> None:
+    by_id = {item['id']: item for item in plan['units']}
+    for dependency in unit.get('depends_on', []):
+        dependency_unit = by_id.get(dependency)
+        if dependency_unit is None:
+            fail(f'unit dependency missing from plan: {dependency}')
+        if dependency_unit.get('status') != 'collected':
+            fail(f'unit dependency not collected yet: {dependency}')
+
+
+def validate_unit_report_text(report_text: str, unit: dict) -> tuple[list[str], list[str]]:
+    require_headings(report_text, REQUIRED_UNIT_REPORT_HEADINGS, 'unit report')
+    require_no_placeholders(report_text, 'unit report')
+    mapped_ids = extract_acceptance_mapping_ids_generic(report_text)
+    missing_ids = [item for item in unit['acceptance_criteria_ids'] if item not in mapped_ids]
+    if missing_ids:
+        fail(f'unit report is missing acceptance mappings for: {", ".join(missing_ids)}')
+    changed_files = sorted(file.replace('\\', '/') for file in extract_changed_files(report_text))
+    ensure_changed_files_within_scope(changed_files, unit['touched_paths'])
+    return mapped_ids, changed_files
+
+
+def build_file_hash_snapshot(files: list[str]) -> dict[str, str]:
+    snapshot: dict[str, str] = {}
+    for relative_path in files:
+        resolved = (ROOT / relative_path).resolve()
+        try:
+            resolved.relative_to(ROOT)
+        except ValueError:
+            fail(f'changed file escapes workspace: {relative_path}')
+        if not resolved.exists() or not resolved.is_file():
+            fail(f'changed file does not exist for evidence snapshot: {relative_path}')
+        snapshot[relative_path] = hash_file(resolved)
+    return snapshot
+
+
+def plan_units(run_id: str) -> None:
+    validate_contract(run_id)
+    contract = read_run_contract(run_id)
+    ordered_units = topological_work_units(contract['work_units'])
+    unit_plan = {
+        'run_id': run_id,
+        'status': 'planned',
+        'units': [
+            {
+                'id': unit['id'],
+                'title': unit['title'],
+                'objective': unit['objective'],
+                'depends_on': unit['agent_budget']['depends_on'],
+                'touched_paths': unit['touched_paths'],
+                'acceptance_criteria_ids': unit['acceptance_criteria_ids'],
+                'required_evidence': unit['required_evidence'],
+                'agent_budget': {
+                    'max_input_tokens': unit['agent_budget']['max_input_tokens'],
+                    'max_output_tokens': unit['agent_budget']['max_output_tokens'],
+                },
+                'status': 'pending',
+            }
+            for unit in ordered_units
+        ],
+    }
+    target = run_dir(run_id) / '04_unit_plan.json'
+    write_json(target, unit_plan)
+    manifest = read_manifest(run_id)
+    manifest['unit_plan_ref'] = f'{run_relative_dir(run_id)}/04_unit_plan.json'
+    manifest['planned_units'] = [unit['id'] for unit in ordered_units]
+    write_manifest(run_id, manifest)
+    ok(f'unit plan written: {target}')
+
+
+def collect_unit(run_id: str, unit_id: str, report: str) -> None:
+    plan = read_unit_plan(run_id)
+    unit = find_unit(plan, unit_id)
+    ensure_unit_dependencies_satisfied(plan, unit)
+    report_path = (ROOT / report).resolve()
+    if not report_path.exists():
+        fail(f'unit report source file not found: {report}')
+    try:
+        report_path.relative_to(ROOT)
+    except ValueError:
+        fail(f'unit report source escapes workspace: {report}')
+
+    report_text = report_path.read_text(encoding='utf-8')
+    mapped_ids, changed_files = validate_unit_report_text(report_text, unit)
+
+    target = unit_report_path(run_id, unit_id)
+    target.write_text(report_text, encoding='utf-8')
+    evidence_snapshot = build_file_hash_snapshot(changed_files)
+    evidence_target = unit_evidence_path(run_id, unit_id)
+    write_json(
+        evidence_target,
+        {
+            'run_id': run_id,
+            'unit_id': unit_id,
+            'captured_via': 'collect-unit',
+            'reported_changed_files': changed_files,
+            'file_hashes': evidence_snapshot,
+        },
+    )
+    unit['status'] = 'collected'
+    unit['report_ref'] = target.relative_to(ROOT).as_posix()
+    unit['evidence_ref'] = evidence_target.relative_to(ROOT).as_posix()
+    unit['mapped_acceptance_criteria_ids'] = sorted(set(mapped_ids))
+    unit['reported_changed_files'] = changed_files
+    write_unit_plan(run_id, plan)
+
+    manifest = read_manifest(run_id)
+    collected = manifest.get('collected_units', [])
+    if not isinstance(collected, list):
+        collected = []
+    if unit_id not in collected:
+        collected.append(unit_id)
+    manifest['collected_units'] = sorted(collected)
+    write_manifest(run_id, manifest)
+    ok(f'collected unit report: {target}')
+
+
+def dispatch_unit(run_id: str, unit_id: str) -> None:
+    contract = read_run_contract(run_id)
+    plan = read_unit_plan(run_id)
+    unit = find_unit(plan, unit_id)
+    ensure_unit_dependencies_satisfied(plan, unit)
+    if unit.get('status') == 'collected':
+        fail(f'unit already collected: {unit_id}')
+
+    acceptance = {
+        item['id']: item
+        for item in contract['acceptance_criteria']
+        if item['id'] in unit['acceptance_criteria_ids']
+    }
+    payload = {
+        'run_id': run_id,
+        'unit_id': unit['id'],
+        'title': unit['title'],
+        'objective': unit['objective'],
+        'touched_paths': unit['touched_paths'],
+        'acceptance_criteria': [
+            {
+                'id': criterion_id,
+                'statement': acceptance[criterion_id]['statement'],
+                'required_evidence': acceptance[criterion_id]['required_evidence'],
+            }
+            for criterion_id in unit['acceptance_criteria_ids']
+        ],
+        'required_evidence': unit['required_evidence'],
+        'agent_budget': unit['agent_budget'],
+        'report_template': 'tools/harness-runtime/contracts/unit-report.template.md',
+    }
+
+    target = unit_reports_dir(run_id) / f'{unit_id}.dispatch.json'
+    write_json(target, payload)
+    if unit.get('status') == 'pending':
+        unit['status'] = 'dispatched'
+    unit['dispatch_ref'] = target.relative_to(ROOT).as_posix()
+    write_unit_plan(run_id, plan)
+    manifest = read_manifest(run_id)
+    dispatched = manifest.get('dispatched_units', [])
+    if not isinstance(dispatched, list):
+        dispatched = []
+    if unit_id not in dispatched:
+        dispatched.append(unit_id)
+    manifest['dispatched_units'] = sorted(dispatched)
+    write_manifest(run_id, manifest)
+    ok(f'dispatch payload written: {target}')
+
+
+def gate_units(run_id: str) -> None:
+    plan = read_unit_plan(run_id)
+    for unit in plan['units']:
+        unit_id = unit['id']
+        report_ref = unit.get('report_ref')
+        if unit.get('status') != 'collected' or not isinstance(report_ref, str):
+            fail(f'unit is not collected: {unit_id}')
+        report_path = (ROOT / report_ref).resolve()
+        if not report_path.exists():
+            fail(f'unit report missing for {unit_id}: {report_ref}')
+        report_text = report_path.read_text(encoding='utf-8')
+        _, changed_files = validate_unit_report_text(report_text, unit)
+        evidence_ref = unit.get('evidence_ref')
+        if not isinstance(evidence_ref, str):
+            fail(f'unit evidence missing for {unit_id}')
+        evidence_path = (ROOT / evidence_ref).resolve()
+        if not evidence_path.exists():
+            fail(f'unit evidence file missing for {unit_id}: {evidence_ref}')
+        evidence = read_json(evidence_path)
+        if evidence.get('run_id') != run_id or evidence.get('unit_id') != unit_id:
+            fail(f'unit evidence identity mismatch for {unit_id}')
+        hashes = evidence.get('file_hashes')
+        if not isinstance(hashes, dict):
+            fail(f'unit evidence hashes are invalid for {unit_id}')
+        expected_files = sorted(changed_files)
+        if sorted(hashes.keys()) != expected_files:
+            fail(f'unit evidence file list mismatch for {unit_id}')
+        current_hashes = build_file_hash_snapshot(expected_files)
+        if current_hashes != hashes:
+            fail(f'unit evidence hashes changed after collection for {unit_id}')
+
+    manifest = read_manifest(run_id)
+    manifest['unit_gate'] = 'passed'
+    write_manifest(run_id, manifest)
+    record_gate_completion(run_id, 'gate-units', 'units_ready')
+    ok('unit gate passed')
+
+
+def run_status(run_id: str) -> None:
+    manifest = read_manifest(run_id)
+    payload: dict = {
+        'run_id': run_id,
+        'status': manifest.get('status', 'unknown'),
+        'completed_gates': manifest.get('completed_gates', []),
+        'planned_units': manifest.get('planned_units', []),
+        'dispatched_units': manifest.get('dispatched_units', []),
+        'collected_units': manifest.get('collected_units', []),
+        'unit_gate': manifest.get('unit_gate', 'pending'),
+        'last_sequence_report_ref': manifest.get('last_sequence_report_ref'),
+        'sequence_reports': manifest.get('sequence_reports', []),
+    }
+    unit_plan_path = run_dir(run_id) / '04_unit_plan.json'
+    if unit_plan_path.exists():
+        plan = read_unit_plan(run_id)
+        payload['unit_status'] = [
+            {
+                'id': unit.get('id'),
+                'status': unit.get('status', 'unknown'),
+                'depends_on': unit.get('depends_on', []),
+                'dispatch_ref': unit.get('dispatch_ref'),
+                'report_ref': unit.get('report_ref'),
+            }
+            for unit in plan['units']
+        ]
+    print(json.dumps(payload, indent=2))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description='Aurim harness runner')
     sub = parser.add_subparsers(dest='command', required=True)
@@ -689,6 +1085,24 @@ def main() -> None:
     gate_close_parser = sub.add_parser('gate-close')
     gate_close_parser.add_argument('--run-id', required=True)
 
+    plan_units_parser = sub.add_parser('plan-units')
+    plan_units_parser.add_argument('--run-id', required=True)
+
+    collect_unit_parser = sub.add_parser('collect-unit')
+    collect_unit_parser.add_argument('--run-id', required=True)
+    collect_unit_parser.add_argument('--unit-id', required=True)
+    collect_unit_parser.add_argument('--report', required=True)
+
+    dispatch_unit_parser = sub.add_parser('dispatch-unit')
+    dispatch_unit_parser.add_argument('--run-id', required=True)
+    dispatch_unit_parser.add_argument('--unit-id', required=True)
+
+    gate_units_parser = sub.add_parser('gate-units')
+    gate_units_parser.add_argument('--run-id', required=True)
+
+    run_status_parser = sub.add_parser('run-status')
+    run_status_parser.add_argument('--run-id', required=True)
+
     args = parser.parse_args()
 
     if args.command == 'create-run':
@@ -701,10 +1115,19 @@ def main() -> None:
         gate_generator(args.run_id)
     elif args.command == 'gate-close':
         gate_close(args.run_id)
+    elif args.command == 'plan-units':
+        plan_units(args.run_id)
+    elif args.command == 'collect-unit':
+        collect_unit(args.run_id, args.unit_id, args.report)
+    elif args.command == 'dispatch-unit':
+        dispatch_unit(args.run_id, args.unit_id)
+    elif args.command == 'gate-units':
+        gate_units(args.run_id)
+    elif args.command == 'run-status':
+        run_status(args.run_id)
     else:
         fail(f'unknown command: {args.command}')
 
 
 if __name__ == '__main__':
     main()
-

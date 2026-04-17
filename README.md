@@ -40,10 +40,11 @@
 
 1. `docs/foundation/product-philosophy.md`
 2. `docs/foundation/governance-model.md`
-3. `docs/foundation/cloud-handoff.md`
-4. `docs/foundation/ui-direction.md`
-5. `docs/foundation/resume-context.md`
-6. `docs/foundation/design-system.md`
+3. `docs/foundation/collaboration-governance.md`
+4. `docs/foundation/cloud-handoff.md`
+5. `docs/foundation/ui-direction.md`
+6. `docs/foundation/resume-context.md`
+7. `docs/foundation/design-system.md`
 
 ## Recommended First Vertical Slice
 
