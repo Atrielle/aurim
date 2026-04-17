@@ -195,10 +195,6 @@ ADR 최소 항목은 아래와 같다.
 - evaluator verdict is PASS
 - compliance checklist complete
 
-## Related Policies
-
-- collaboration governance: `docs/foundation/collaboration-governance.md`
-
 ## Repository Implication
 
 이 거버넌스는 저장소 구조에도 반영되어야 한다.
