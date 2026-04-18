@@ -61,6 +61,18 @@ unit-level 실패 시나리오를 한 번에 점검하려면 아래 명령을 �
 
 `python tools/harness-runtime/scripts/unit_gate_regression.py`
 
+## Governance Audit
+
+세션 단절 후에도 거버넌스/계약 추적 가능성을 점검하려면 아래 명령을 사용한다.
+
+`python tools/harness-runtime/scripts/governance_audit.py --run-regression`
+
+- `AGENTS.md`, `decision-status.md`, `resume-context.md` 존재 여부
+- first-slice 계약 파일(OpenAPI/JSON Schema/v0 문서) 존재 여부
+- 결정 레코드(`docs/foundation/decisions/DEC-*.json`) 최소 스키마 충족 여부
+- (옵션) `unit_gate_regression.py` 실행 결과
+- 결과 리포트는 `tools/harness-runtime/artifacts/governance-reports/`에 저장
+
 ## Harness UI Console
 
 자동화 흐름을 터미널 대신 UI에서 실행하려면 아래 명령으로 로컬 콘솔을 띄운다.
@@ -101,6 +113,21 @@ UI에서 권장 순서:
 ```bash
 python tools/harness-runtime/scripts/runner.py run-status --run-id <run-id>
 ```
+
+## Refactor Program (In Progress)
+
+하네스 러너 리팩토링은 `tools/harness-runtime/scripts/harness_core/README.md`의 Phase 계획을 기준으로 점진 진행한다.
+
+- Phase 0: 모듈 경계 정의 및 skeleton 생성 (완료)
+- Phase 1: 공통 IO/Validation/Path 함수를 runner에서 모듈로 위임 (완료)
+- Phase 2-A: unit report 도메인 로직(`unit_ops.py`) 분리 (완료)
+- Phase 2-B1: gate-close 도메인 로직(`gate_ops.py`) 분리 (완료)
+- Phase 2-B2: sprint contract + unit ordering 도메인 로직(`contract_ops.py`) 분리 (완료)
+- Phase 3-A: freeze/baseline 검증 로직(`baseline_ops.py`) 분리 (완료)
+- Phase 3-B: manifest 상태 전이 helper(`manifest_ops.py`) 분리 (완료)
+- Phase 4-A: CLI parser/dispatch(`cli_ops.py`) 분리 (완료)
+- Phase 4-B: command handler registry 검증 + `run_cli` 통합 (완료)
+- Refactor Program: 완료 (Phase 0~4 종료)
 
 ## CI Automation
 
