@@ -11,8 +11,9 @@
 5. `docs/foundation/ui-direction.md`
 6. `docs/foundation/resume-context.md`
 7. `docs/foundation/design-system.md`
-8. `packages/contracts/*.v0.md`
-9. `apps/backend/build.gradle.kts`
+8. `docs/foundation/decision-status.md`
+9. `packages/contracts/*.v0.md`
+10. `apps/backend/build.gradle.kts`
 
 ## Current State Summary
 
@@ -51,8 +52,8 @@ Do not redesign the architecture.
 Do not widen scope.
 The next concrete task is:
 
-- create actual `OpenAPI` and `JSON Schema` files under `packages/contracts/`
-- then implement backend first-slice API skeleton against those contracts
+- verify existing `OpenAPI` and `JSON Schema` are kept authoritative and compatible
+- implement/align backend first-slice API behavior against those contracts
 
 ## Prompt To Start Next Session
 
@@ -67,6 +68,7 @@ Read these files first and treat them as authoritative:
 - docs/foundation/ui-direction.md
 - docs/foundation/resume-context.md
 - docs/foundation/design-system.md
+- docs/foundation/decision-status.md
 
 Keep the current monorepo shape.
 Do not reintroduce Python backend code.
@@ -74,7 +76,7 @@ Do not change the agreed stack.
 Do not widen scope beyond the first vertical slice.
 
 Start with packages/contracts as the source of truth.
-Create actual OpenAPI and JSON Schema files for workspace, git workspace, factory spec, factory run, and factory artifact.
-Then wire backend API skeletons to those contracts.
-Before coding, summarize current repo state and the exact touched paths.
+Keep OpenAPI and JSON Schema for workspace, git workspace, factory spec, factory run, and factory artifact as the source of truth.
+Then wire/align backend API skeletons and behavior to those contracts.
+Before coding, summarize current repo state, decision-status(Decided/Pending), and the exact touched paths.
 ```
