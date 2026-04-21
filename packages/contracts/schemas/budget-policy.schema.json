@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reusable-harness/contracts/budget-policy.schema.json",
+  "title": "Budget Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_limits",
+    "unit_limits",
+    "cost_policy"
+  ],
+  "properties": {
+    "run_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_input_tokens",
+        "max_output_tokens",
+        "max_retry_count"
+      ],
+      "properties": {
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_retry_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "unit_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_input_tokens",
+        "max_output_tokens",
+        "max_retry_count"
+      ],
+      "properties": {
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_retry_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "cost_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enforced",
+        "currency",
+        "run_cost_ceiling"
+      ],
+      "properties": {
+        "enforced": {
+          "type": "boolean"
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_cost_ceiling": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

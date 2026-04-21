@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reusable-harness/contracts/retry-policy.schema.json",
+  "title": "Retry Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "max_retries_per_unit",
+    "max_replans_per_run",
+    "allow_replan_on_fail",
+    "blocked_requires_operator"
+  ],
+  "properties": {
+    "max_retries_per_unit": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_replans_per_run": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "allow_replan_on_fail": {
+      "type": "boolean"
+    },
+    "blocked_requires_operator": {
+      "type": "boolean"
+    },
+    "fatal_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

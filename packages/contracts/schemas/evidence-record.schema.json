@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reusable-harness/contracts/evidence-record.schema.json",
+  "title": "Evidence Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "run_id",
+    "unit_id",
+    "stage",
+    "created_at",
+    "evidence_refs"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "planner",
+        "generator",
+        "evaluator",
+        "retry",
+        "gate-close"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

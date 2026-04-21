@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reusable-harness/contracts/ui-run-view.schema.json",
+  "title": "UI Run View",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "status",
+    "executor",
+    "budget_summary",
+    "unit_timeline"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "executor": {
+      "type": "string",
+      "minLength": 1
+    },
+    "budget_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_tokens_used",
+        "output_tokens_used",
+        "retry_count"
+      ],
+      "properties": {
+        "input_tokens_used": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output_tokens_used": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "retry_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "unit_timeline": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unitTimelineEntry"
+      }
+    }
+  },
+  "$defs": {
+    "unitTimelineEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "status",
+        "latest_stage",
+        "latest_ref"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "latest_stage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "latest_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reusable-harness/contracts/executor-config.schema.json",
+  "title": "Executor Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "executor_id",
+    "executor_type",
+    "stage_bindings",
+    "timeouts"
+  ],
+  "properties": {
+    "executor_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "executor_type": {
+      "type": "string",
+      "enum": [
+        "mock",
+        "subprocess",
+        "api"
+      ]
+    },
+    "stage_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planner",
+        "generator",
+        "evaluator"
+      ],
+      "properties": {
+        "planner": {
+          "$ref": "#/$defs/stageBinding"
+        },
+        "generator": {
+          "$ref": "#/$defs/stageBinding"
+        },
+        "evaluator": {
+          "$ref": "#/$defs/stageBinding"
+        }
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planner_seconds",
+        "generator_seconds",
+        "evaluator_seconds"
+      ],
+      "properties": {
+        "planner_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "generator_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evaluator_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stageBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_ref",
+        "max_input_tokens",
+        "max_output_tokens"
+      ],
+      "properties": {
+        "model_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}
