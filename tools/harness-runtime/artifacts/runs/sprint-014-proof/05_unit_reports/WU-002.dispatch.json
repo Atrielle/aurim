@@ -1,0 +1,31 @@
+{
+  "run_id": "sprint-014-proof",
+  "unit_id": "WU-002",
+  "title": "Implement backend contract validation",
+  "objective": "Add request validation and regression tests for representative first-slice backend endpoints.",
+  "touched_paths": [
+    "apps/backend/build.gradle.kts",
+    "apps/backend/src"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-002",
+      "statement": "Backend request validation rejects contract-invalid payloads for the first-slice API before service logic proceeds.",
+      "required_evidence": [
+        "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/model/Contracts.kt",
+        "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/api/WorkspaceController.kt",
+        "apps/backend/src/test/kotlin/io/atrielle/aurim/backend/api/ContractValidationTest.kt",
+        "apps/backend/gradlew.bat test"
+      ]
+    }
+  ],
+  "required_evidence": [
+    "apps/backend/src/test/kotlin/io/atrielle/aurim/backend/api/ContractValidationTest.kt",
+    "apps/backend/gradlew.bat test"
+  ],
+  "agent_budget": {
+    "max_input_tokens": 16000,
+    "max_output_tokens": 4000
+  },
+  "report_template": "tools/harness-runtime/contracts/unit-report.template.md"
+}

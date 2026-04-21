@@ -1,0 +1,72 @@
+{
+  "run_id": "sprint-014-proof",
+  "status": "planned",
+  "units": [
+    {
+      "id": "WU-001",
+      "title": "Author proof contract and backend validation plan",
+      "objective": "Freeze a canonical proof contract and prepare the backend validation change set against the first-slice contracts.",
+      "depends_on": [],
+      "touched_paths": [
+        "apps/backend/build.gradle.kts",
+        "apps/backend/src"
+      ],
+      "acceptance_criteria_ids": [
+        "AC-001"
+      ],
+      "required_evidence": [
+        "tools/harness-runtime/artifacts/runs/sprint-014-proof/04_unit_plan.json",
+        "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-001.dispatch.json"
+      ],
+      "agent_budget": {
+        "max_input_tokens": 12000,
+        "max_output_tokens": 3000
+      },
+      "status": "collected",
+      "report_ref": "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-001.md",
+      "evidence_ref": "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-001.evidence.json",
+      "mapped_acceptance_criteria_ids": [
+        "AC-001"
+      ],
+      "reported_changed_files": [
+        "apps/backend/build.gradle.kts",
+        "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/model/Contracts.kt"
+      ]
+    },
+    {
+      "id": "WU-002",
+      "title": "Implement backend contract validation",
+      "objective": "Add request validation and regression tests for representative first-slice backend endpoints.",
+      "depends_on": [
+        "WU-001"
+      ],
+      "touched_paths": [
+        "apps/backend/build.gradle.kts",
+        "apps/backend/src"
+      ],
+      "acceptance_criteria_ids": [
+        "AC-002"
+      ],
+      "required_evidence": [
+        "apps/backend/src/test/kotlin/io/atrielle/aurim/backend/api/ContractValidationTest.kt",
+        "apps/backend/gradlew.bat test"
+      ],
+      "agent_budget": {
+        "max_input_tokens": 16000,
+        "max_output_tokens": 4000
+      },
+      "status": "collected",
+      "dispatch_ref": "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-002.dispatch.json",
+      "report_ref": "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-002.md",
+      "evidence_ref": "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-002.evidence.json",
+      "mapped_acceptance_criteria_ids": [
+        "AC-002"
+      ],
+      "reported_changed_files": [
+        "apps/backend/build.gradle.kts",
+        "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/api/WorkspaceController.kt",
+        "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/model/Contracts.kt"
+      ]
+    }
+  ]
+}

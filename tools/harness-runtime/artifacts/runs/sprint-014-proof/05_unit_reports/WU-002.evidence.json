@@ -1,0 +1,15 @@
+{
+  "run_id": "sprint-014-proof",
+  "unit_id": "WU-002",
+  "captured_via": "collect-unit",
+  "reported_changed_files": [
+    "apps/backend/build.gradle.kts",
+    "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/api/WorkspaceController.kt",
+    "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/model/Contracts.kt"
+  ],
+  "file_hashes": {
+    "apps/backend/build.gradle.kts": "c772db0feb882ca095c94bec9b6dc8cd4438fa8566d64a0bd044ebad5e4f0eeb",
+    "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/api/WorkspaceController.kt": "d9d2ab1d0af24db0088ee6446b77e276aae24146f3dd7e085b8c840948cfc9de",
+    "apps/backend/src/main/kotlin/io/atrielle/aurim/backend/model/Contracts.kt": "3bebbf53c4e20d1764d7fa427325aa6e83fcbabbfefcbdfb255385eaf675f076"
+  }
+}

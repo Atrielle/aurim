@@ -5,6 +5,7 @@ import io.atrielle.aurim.backend.model.GitWorkspace
 import io.atrielle.aurim.backend.model.ItemsResponse
 import io.atrielle.aurim.backend.model.UpdateGitWorkspaceRequest
 import io.atrielle.aurim.backend.service.GitWorkspaceService
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -23,7 +24,7 @@ class GitWorkspaceController(
     @PostMapping("/workspaces/{workspace_id}/git-workspaces")
     suspend fun createGitWorkspace(
         @PathVariable("workspace_id") workspaceId: String,
-        @RequestBody request: CreateGitWorkspaceRequest,
+        @Valid @RequestBody request: CreateGitWorkspaceRequest,
     ): ResponseEntity<GitWorkspace> =
         ResponseEntity
             .status(HttpStatus.CREATED)
@@ -42,7 +43,7 @@ class GitWorkspaceController(
     @PatchMapping("/git-workspaces/{git_workspace_id}")
     suspend fun updateGitWorkspace(
         @PathVariable("git_workspace_id") gitWorkspaceId: String,
-        @RequestBody request: UpdateGitWorkspaceRequest,
+        @Valid @RequestBody request: UpdateGitWorkspaceRequest,
     ): GitWorkspace = gitWorkspaceService.update(gitWorkspaceId, request)
 
     @DeleteMapping("/git-workspaces/{git_workspace_id}")

@@ -1,0 +1,56 @@
+{
+  "run_id": "sprint-014-proof",
+  "status": "units_ready",
+  "required_sequence": [
+    "00_spec_snapshot.md",
+    "01_run_contract.json",
+    "01_sprint_contract.md",
+    "02_generator_report.md",
+    "03_evaluator_report.md"
+  ],
+  "completed_gates": [
+    "freeze-contract",
+    "gate-units"
+  ],
+  "template_snapshot": {
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/00_spec_snapshot.md": "e7825ac4f88415c1615c67483f0aadc199ac1301828d8df933c46a30607bd0a4",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/01_run_contract.json": "de14edc42ac190fa538d5e7a278c3c8624d1106acf561d279faeb30cf4d067d6",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/01_sprint_contract.md": "f1965558bf1bc885d0553cbcccbe5a661de5f204af15fe35a2f90306270bdb90",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/02_generator_report.md": "0f7138f2d3c1530f424756af830be717c619db48e348691ccd74557277f9b957",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/03_evaluator_report.md": "adebe14ca58ea2a7c0d945fc4b954b58fe44a4e5b0886a56d0cd493019540bbf",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/manifest.json": "cbe84a248a3f35ca1d4dd884c644c7dc200d67b477b4510cacbb3622dde5c316"
+  },
+  "unit_plan_ref": "tools/harness-runtime/artifacts/runs/sprint-014-proof/04_unit_plan.json",
+  "planned_units": [
+    "WU-001",
+    "WU-002"
+  ],
+  "collected_units": [
+    "WU-001",
+    "WU-002"
+  ],
+  "dispatched_units": [
+    "WU-002"
+  ],
+  "frozen_snapshot": {
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/00_spec_snapshot.md": "e7825ac4f88415c1615c67483f0aadc199ac1301828d8df933c46a30607bd0a4",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/01_run_contract.json": "c615a48079ea0909906e88907bf5eb9add48d3074014e2dd14cfb0daaf647e1d",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/01_sprint_contract.md": "c99f95f8f2a6dc0279a1de1dcb5ac29fdb348712f4336dcb719af4d021daca9d",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/02_generator_report.md": "0f7138f2d3c1530f424756af830be717c619db48e348691ccd74557277f9b957",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/03_evaluator_report.md": "adebe14ca58ea2a7c0d945fc4b954b58fe44a4e5b0886a56d0cd493019540bbf",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/04_unit_plan.json": "43e6863a20730deb0b5238a94f70cadb27ac6b8aa5ec3bfd754b92302de6ed07",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-001.evidence.json": "bfca5b7bd255d2ac87f437e3bc61b2acee34dbce7b494af6f19039eb9b7d984f",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-001.md": "53b3800302e78e99e40303380a544a926f3c0df0a9854f1d54a5ddc9e7c2814a",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-002.dispatch.json": "ccc129c53dcd5f4116c7d8e231af6d1d8395cc99d9ccef2604976ec97019d88d",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-002.evidence.json": "b0f5c7990a068d1426fbaa468a8eed3b72e94b1ea3e08da266863cbd00f5e4f2",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/05_unit_reports/WU-002.md": "b54dae7e6fda3795d4da86ee8ab935b25b4c061a92521e29a25e6b5829235a9c",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/wu-001-source.md": "73198c98d67cc45a7bc92a10c89b9259c0aac2e9726693159e740519b8ea286a",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/wu-002-source.md": "e901cf7e0bc8e239415e12e2e5e4ae93df1bcf56ab2f654288751229ec82e38d"
+  },
+  "frozen_contract_captured_via": "freeze-contract",
+  "frozen_contract_fields": [
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/01_run_contract.json",
+    "tools/harness-runtime/artifacts/runs/sprint-014-proof/01_sprint_contract.md"
+  ],
+  "unit_gate": "passed"
+}
