@@ -5,7 +5,6 @@ import io.atrielle.aurim.backend.model.CreateFactoryRunRequest
 import io.atrielle.aurim.backend.model.FactoryRun
 import io.atrielle.aurim.backend.model.ItemsResponse
 import io.atrielle.aurim.backend.service.FactoryRunService
-import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,7 +19,7 @@ class FactoryRunController(
 ) {
 
     @PostMapping("/factory-runs")
-    suspend fun createFactoryRun(@Valid @RequestBody request: CreateFactoryRunRequest): ResponseEntity<FactoryRun> =
+    suspend fun createFactoryRun(@RequestBody request: CreateFactoryRunRequest): ResponseEntity<FactoryRun> =
         ResponseEntity
             .status(HttpStatus.CREATED)
             .body(factoryRunService.create(request))
@@ -42,6 +41,6 @@ class FactoryRunController(
     @PostMapping("/factory-runs/{factory_run_id}/close")
     suspend fun closeFactoryRun(
         @PathVariable("factory_run_id") factoryRunId: String,
-        @Valid @RequestBody request: CloseFactoryRunRequest,
+        @RequestBody request: CloseFactoryRunRequest,
     ): FactoryRun = factoryRunService.close(factoryRunId, request)
 }

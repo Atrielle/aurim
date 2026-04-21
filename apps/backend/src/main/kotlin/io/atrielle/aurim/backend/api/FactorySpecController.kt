@@ -5,7 +5,6 @@ import io.atrielle.aurim.backend.model.FactorySpec
 import io.atrielle.aurim.backend.model.ItemsResponse
 import io.atrielle.aurim.backend.model.UpdateFactorySpecRequest
 import io.atrielle.aurim.backend.service.FactorySpecService
-import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -23,7 +22,7 @@ class FactorySpecController(
     @PostMapping("/workspaces/{workspace_id}/factory-specs")
     suspend fun createFactorySpec(
         @PathVariable("workspace_id") workspaceId: String,
-        @Valid @RequestBody request: CreateFactorySpecRequest,
+        @RequestBody request: CreateFactorySpecRequest,
     ): ResponseEntity<FactorySpec> =
         ResponseEntity
             .status(HttpStatus.CREATED)
@@ -42,7 +41,7 @@ class FactorySpecController(
     @PatchMapping("/factory-specs/{factory_spec_id}")
     suspend fun updateFactorySpec(
         @PathVariable("factory_spec_id") factorySpecId: String,
-        @Valid @RequestBody request: UpdateFactorySpecRequest,
+        @RequestBody request: UpdateFactorySpecRequest,
     ): FactorySpec = factorySpecService.update(factorySpecId, request)
 
     @PostMapping("/factory-specs/{factory_spec_id}/approve")

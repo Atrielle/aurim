@@ -4,7 +4,6 @@ import io.atrielle.aurim.backend.model.CreateFactoryArtifactRequest
 import io.atrielle.aurim.backend.model.FactoryArtifact
 import io.atrielle.aurim.backend.model.ItemsResponse
 import io.atrielle.aurim.backend.service.FactoryArtifactService
-import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,7 +20,7 @@ class FactoryArtifactController(
     @PostMapping("/factory-runs/{factory_run_id}/artifacts")
     suspend fun createFactoryArtifact(
         @PathVariable("factory_run_id") factoryRunId: String,
-        @Valid @RequestBody request: CreateFactoryArtifactRequest,
+        @RequestBody request: CreateFactoryArtifactRequest,
     ): ResponseEntity<FactoryArtifact> =
         ResponseEntity
             .status(HttpStatus.CREATED)

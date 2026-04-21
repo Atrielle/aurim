@@ -47,8 +47,6 @@
 
 ## Session Notes
 
-- 2026-04-21: `sprint-015-proof` canonical run을 current `main` 기준으로 생성해 최신 `work_units` schema와 `plan-units -> dispatch-unit -> collect-unit -> gate-units -> freeze-contract -> gate-generator -> gate-close` 흐름을 증빙.
-- 2026-04-21: backend first-slice 요청 DTO에 contract-aligned validation을 추가하고 representative validation regression test(`apps/backend/gradlew.bat test`)를 통과시킴.
 - 2026-04-18: Root `AGENTS.md`와 본 `decision-status.md`를 추가해 세션 재개 시 문서 기반 강제 컨텍스트를 고정.
 - 2026-04-18: 하네스 회귀/컴파일 체크를 실행해 런타임 기본 건전성을 확인.
 - 2026-04-18: 거버넌스 감사 스크립트(`governance_audit.py`)와 결정 레코드 스키마/샘플을 추가해 추적 가능성을 강화.
@@ -65,4 +63,4 @@
 
 ## Last Updated
 
-- 2026-04-21 (UTC)
+- 2026-04-18 (UTC)

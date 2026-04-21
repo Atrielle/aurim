@@ -5,7 +5,6 @@ import io.atrielle.aurim.backend.model.ItemsResponse
 import io.atrielle.aurim.backend.model.UpdateWorkspaceRequest
 import io.atrielle.aurim.backend.model.Workspace
 import io.atrielle.aurim.backend.service.WorkspaceService
-import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,7 +20,7 @@ class WorkspaceController(
 ) {
 
     @PostMapping("/workspaces")
-    suspend fun createWorkspace(@Valid @RequestBody request: CreateWorkspaceRequest): ResponseEntity<Workspace> =
+    suspend fun createWorkspace(@RequestBody request: CreateWorkspaceRequest): ResponseEntity<Workspace> =
         ResponseEntity
             .status(HttpStatus.CREATED)
             .body(workspaceService.create(request))
@@ -39,6 +38,6 @@ class WorkspaceController(
     @PatchMapping("/workspaces/{workspace_id}")
     suspend fun updateWorkspace(
         @PathVariable("workspace_id") workspaceId: String,
-        @Valid @RequestBody request: UpdateWorkspaceRequest,
+        @RequestBody request: UpdateWorkspaceRequest,
     ): Workspace = workspaceService.update(workspaceId, request)
 }
